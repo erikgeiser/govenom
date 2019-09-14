@@ -2,23 +2,21 @@ package debuglog
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"strings"
 )
-
-type exfiltrator interface {
-	send(data string)
-}
 
 // Logger is a logger that exfiltrated debug info over
 // alternative channels
 type Logger struct {
-	exfiltrators []exfiltrator
+	exfiltrators []io.Writer
 }
 
 // New constructs DebugLogger with multiple exfiltration channels
 func New(cfgs string) (Logger, []error) {
 	errors := []error{}
-	logger := Logger{[]exfiltrator{}}
+	logger := Logger{[]io.Writer{}}
 
 	// it's perfectly fine to create a dummy Logger by passing an emtpy
 	// string as config
@@ -35,12 +33,12 @@ func New(cfgs string) (Logger, []error) {
 		exfilType := strings.ToLower(elems[0])
 		exfilCfg := strings.Join(elems[1:], "")
 		var err error
-		var exfil exfiltrator
+		var exfil io.Writer
 
 		switch exfilType {
 		case "dns":
 			exfil, err = newDNSExfiltrator(exfilCfg)
-		case "tcp", "udp", "ip":
+		default:
 			err = fmt.Errorf("%s exfiltration not yet implemented", exfilType)
 		}
 
@@ -55,8 +53,30 @@ func New(cfgs string) (Logger, []error) {
 }
 
 // Send sends out the input strong over all exfiltration channels
-func (l *Logger) Send(data string) {
+func (l *Logger) Write(data []byte) (int, error) {
 	for _, exfil := range l.exfiltrators {
-		exfil.send(data)
+		go exfil.Write(data)
 	}
+	return 0, nil
+}
+
+// AddExfiltrator allows it add exfiltrators after initialization
+func (l *Logger) AddExfiltrator(exfil io.Writer) {
+	l.exfiltrators = append(l.exfiltrators, exfil)
+}
+
+// Printf is as expected
+func (l *Logger) Printf(format string, a ...interface{}) {
+	l.Write([]byte(fmt.Sprintf(format, a...)))
+}
+
+// Println is as expected
+func (l *Logger) Println(a ...interface{}) {
+	l.Write([]byte(fmt.Sprintln(a...)))
+}
+
+// Fatal is as expected
+func (l *Logger) Fatal(a ...interface{}) {
+	l.Write([]byte(fmt.Sprintln(a...)))
+	os.Exit(1)
 }

