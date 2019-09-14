@@ -18,8 +18,9 @@ type options struct {
 var opts options
 
 var rootCmd = &cobra.Command{
-	Use:   "govenom",
-	Short: "govenom is a cross-platform payload generator",
+	Use:           "govenom",
+	Short:         "govenom is a cross-platform payload generator",
+	SilenceErrors: true,
 }
 
 var reverseShellCmd = &cobra.Command{
