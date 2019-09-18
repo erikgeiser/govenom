@@ -36,11 +36,14 @@ var reverseShellCmd = &cobra.Command{
 			"debugCfg": opts.debugCfg,
 		}
 
-		build([]string{
+		err := build([]string{
 			"-ldflags", setupLDFlags(regular, externalVars),
 			"-o", outputFileName("reverse_shell"),
 			"./payloads/reverse_shell",
 		})
+		if err != nil {
+			fmt.Println(err)
+		}
 	},
 }
 
@@ -57,11 +60,14 @@ var stagerCmd = &cobra.Command{
 			"debugCfg": opts.debugCfg,
 		}
 
-		build([]string{
+		err := build([]string{
 			"-ldflags", setupLDFlags(regular, externalVars),
 			"-o", outputFileName("stager"),
 			"./payloads/stager",
 		})
+		if err != nil {
+			fmt.Println(err)
+		}
 	},
 }
 

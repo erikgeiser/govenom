@@ -51,5 +51,16 @@ func build(args []string) error {
 	cmd := exec.Command("go", a...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Env = buildEnv()
 	return cmd.Run()
+}
+
+func buildEnv() []string {
+	envs := []string{}
+	for _, env := range os.Environ() {
+		if !strings.HasPrefix(env, "GOOS=") && !strings.HasPrefix(env, "GOARCH=") {
+			envs = append(envs, env)
+		}
+	}
+	return append(envs, fmt.Sprintf("GOOS=%s", opts.os), fmt.Sprintf("GOARCH=%s", opts.arch))
 }
