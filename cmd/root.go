@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type options struct {
+var opts struct {
 	address      string
 	arch         string
 	os           string
@@ -16,8 +16,6 @@ type options struct {
 	debugCfg     string
 	noWindowsGui bool
 }
-
-var opts options
 
 var rootCmd = &cobra.Command{
 	Use:           "govenom",
@@ -32,8 +30,6 @@ var reverseShellCmd = &cobra.Command{
 		regular := regularLDFlags{"w": "", "s": ""}
 		if opts.os == "windows" && !opts.noWindowsGui {
 			regular["H"] = "windowsgui"
-		} else {
-			fmt.Printf(opts.os)
 		}
 		externalVars := externalVarLDFlags{
 			"address":  opts.address,
@@ -43,7 +39,7 @@ var reverseShellCmd = &cobra.Command{
 		build([]string{
 			"-ldflags", setupLDFlags(regular, externalVars),
 			"-o", outputFileName("reverse_shell"),
-			"./payloads/reverse_shell/main.go",
+			"./payloads/reverse_shell",
 		})
 	},
 }
@@ -55,8 +51,6 @@ var stagerCmd = &cobra.Command{
 		regular := regularLDFlags{"w": "", "s": ""}
 		if opts.os == "windows" && !opts.noWindowsGui {
 			regular["H"] = "windowsgui"
-		} else {
-			fmt.Printf(opts.os)
 		}
 		externalVars := externalVarLDFlags{
 			"address":  opts.address,
@@ -66,7 +60,7 @@ var stagerCmd = &cobra.Command{
 		build([]string{
 			"-ldflags", setupLDFlags(regular, externalVars),
 			"-o", outputFileName("stager"),
-			"./payloads/stager/main.go",
+			"./payloads/stager",
 		})
 	},
 }
