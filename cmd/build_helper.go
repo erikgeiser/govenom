@@ -34,7 +34,7 @@ func outputFileName(payload string) string {
 	case "windows":
 		extension = "exe"
 	case "darwin":
-		extension = "mach-O"
+		extension = "macho"
 	case "linux":
 		extension = "elf"
 	default:
