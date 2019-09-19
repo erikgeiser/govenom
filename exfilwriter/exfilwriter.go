@@ -1,27 +1,26 @@
-package debuglog
+package exfilwriter
 
 import (
 	"fmt"
 	"io"
-	"os"
 	"strings"
 )
 
-// Logger is a logger that exfiltrated debug info over
+// ExfilWriter is a logger that exfiltrated debug info over
 // alternative channels
-type Logger struct {
+type ExfilWriter struct {
 	exfiltrators []io.Writer
 }
 
 // New constructs DebugLogger with multiple exfiltration channels
-func New(cfgs string) (Logger, []error) {
+func New(cfgs string) (*ExfilWriter, []error) {
 	errors := []error{}
-	logger := Logger{[]io.Writer{}}
+	exfilWriter := ExfilWriter{[]io.Writer{}}
 
 	// it's perfectly fine to create a dummy Logger by passing an emtpy
 	// string as config
 	if cfgs == "" {
-		return logger, errors
+		return nil, errors
 	}
 
 	for _, cfg := range strings.Split(cfgs, ",") {
@@ -38,6 +37,10 @@ func New(cfgs string) (Logger, []error) {
 		switch exfilType {
 		case "dns":
 			exfil, err = newDNSExfiltrator(exfilCfg)
+		case "file":
+			exfil, err = newFileExfiltrator(exfilCfg)
+		case "dial":
+			exfil, err = newDialExfiltrator(exfilCfg)
 		default:
 			err = fmt.Errorf("%s exfiltration not yet implemented", exfilType)
 		}
@@ -46,14 +49,14 @@ func New(cfgs string) (Logger, []error) {
 			errors = append(errors, err)
 			continue
 		}
-		logger.exfiltrators = append(logger.exfiltrators, exfil)
+		exfilWriter.exfiltrators = append(exfilWriter.exfiltrators, exfil)
 	}
 
-	return logger, errors
+	return &exfilWriter, errors
 }
 
 // Send sends out the input strong over all exfiltration channels
-func (l *Logger) Write(data []byte) (int, error) {
+func (l *ExfilWriter) Write(data []byte) (int, error) {
 	for _, exfil := range l.exfiltrators {
 		go exfil.Write(data)
 	}
@@ -61,22 +64,6 @@ func (l *Logger) Write(data []byte) (int, error) {
 }
 
 // AddExfiltrator allows it add exfiltrators after initialization
-func (l *Logger) AddExfiltrator(exfil io.Writer) {
+func (l *ExfilWriter) AddExfiltrator(exfil io.Writer) {
 	l.exfiltrators = append(l.exfiltrators, exfil)
-}
-
-// Printf is as expected
-func (l *Logger) Printf(format string, a ...interface{}) {
-	l.Write([]byte(fmt.Sprintf(format, a...)))
-}
-
-// Println is as expected
-func (l *Logger) Println(a ...interface{}) {
-	l.Write([]byte(fmt.Sprintln(a...)))
-}
-
-// Fatal is as expected
-func (l *Logger) Fatal(a ...interface{}) {
-	l.Write([]byte(fmt.Sprintln(a...)))
-	os.Exit(1)
 }
