@@ -3,38 +3,43 @@ package exfilwriter
 import (
 	"fmt"
 	"io"
+	"os"
 	"strings"
+	"sync"
+	"time"
 )
 
 // ExfilWriter is a logger that exfiltrated debug info over
 // alternative channels
 type ExfilWriter struct {
 	exfiltrators []io.Writer
+	writeTimeout time.Duration
 }
 
 // New constructs DebugLogger with multiple exfiltration channels
-func New(cfgs string) (*ExfilWriter, []error) {
+func New(cfgs string, writeTimeout time.Duration) (*ExfilWriter, []error) {
 	errors := []error{}
-	exfilWriter := ExfilWriter{[]io.Writer{}}
+	exfilWriter := ExfilWriter{[]io.Writer{}, writeTimeout}
 
-	// it's perfectly fine to create a dummy Logger by passing an emtpy
-	// string as config
+	// it's perfectly fine to create a dummy Logger
+	// by passing an emtpy string as config
 	if cfgs == "" {
-		return nil, errors
+		return &exfilWriter, errors
 	}
 
 	for _, cfg := range strings.Split(cfgs, ",") {
 		elems := strings.Split(cfg, ":")
-		if len(elems) < 2 {
-			errors = append(errors, fmt.Errorf("invalid config: %s", cfg))
-		}
-
 		exfilType := strings.ToLower(elems[0])
 		exfilCfg := strings.Join(elems[1:], "")
+
 		var err error
 		var exfil io.Writer
 
 		switch exfilType {
+		case "stdout":
+			exfil, err = newWriterExfiltrator(os.Stdout)
+		case "stderr":
+			exfil, err = newWriterExfiltrator(os.Stderr)
 		case "dns":
 			exfil, err = newDNSExfiltrator(exfilCfg)
 		case "file":
@@ -42,7 +47,7 @@ func New(cfgs string) (*ExfilWriter, []error) {
 		case "dial":
 			exfil, err = newDialExfiltrator(exfilCfg)
 		default:
-			err = fmt.Errorf("%s exfiltration not yet implemented", exfilType)
+			err = fmt.Errorf("%s exfiltration not implemented", exfilType)
 		}
 
 		if err != nil {
@@ -57,13 +62,37 @@ func New(cfgs string) (*ExfilWriter, []error) {
 
 // Send sends out the input strong over all exfiltration channels
 func (l *ExfilWriter) Write(data []byte) (int, error) {
+	var wg sync.WaitGroup
+
 	for _, exfil := range l.exfiltrators {
-		go exfil.Write(data)
+		wg.Add(1)
+
+		go func(ew io.Writer) {
+			defer wg.Done()
+			_, _ = ew.Write(data)
+		}(exfil)
 	}
-	return 0, nil
+
+	waitTimeout(&wg, l.writeTimeout)
+
+	return len(data), nil
 }
 
 // AddExfiltrator allows it add exfiltrators after initialization
 func (l *ExfilWriter) AddExfiltrator(exfil io.Writer) {
 	l.exfiltrators = append(l.exfiltrators, exfil)
+}
+
+func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) {
+	c := make(chan struct{})
+
+	go func() {
+		defer close(c)
+		wg.Wait()
+	}()
+
+	select {
+	case <-c:
+	case <-time.After(timeout):
+	}
 }
