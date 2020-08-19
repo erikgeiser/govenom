@@ -1,3 +1,5 @@
 *.exe
 *.elf
 *.macho
+*.executable
+/govenom

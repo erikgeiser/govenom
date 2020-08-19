@@ -7,16 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var opts struct {
-	address      string
-	net          string
-	arch         string
-	os           string
-	output       string
-	exfilCfg     string
-	noWindowsGui bool
-}
-
 var rootCmd = &cobra.Command{
 	Use:           "govenom",
 	Short:         "govenom is a cross-platform payload generator",
