@@ -8,8 +8,8 @@ type fileExfiltrator struct {
 	fileName string
 }
 
-func newFileExfiltrator(fileName string) (*fileExfiltrator, error) {
-	return &fileExfiltrator{fileName}, nil
+func newFileExfiltrator(fileName string) *fileExfiltrator {
+	return &fileExfiltrator{fileName}
 }
 
 func (ex *fileExfiltrator) Write(data []byte) (int, error) {

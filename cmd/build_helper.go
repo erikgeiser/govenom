@@ -18,11 +18,14 @@ func setupLDFlags(regular regularLDFlags, externalVars externalVarLDFlags) strin
 		if v != "" {
 			res += "=" + v
 		}
+
 		res += " "
 	}
+
 	for k, v := range externalVars {
 		res += fmt.Sprintf("-X main.%s=%s ", k, v)
 	}
+
 	return res
 }
 
@@ -30,7 +33,9 @@ func outputFileName(payload string) string {
 	if opts.output != "" {
 		return opts.output
 	}
+
 	var extension string
+
 	switch opts.os {
 	case "windows":
 		extension = "exe"
@@ -41,6 +46,7 @@ func outputFileName(payload string) string {
 	default:
 		extension = "executable"
 	}
+
 	return fmt.Sprintf("%s.%s-%s.%s", payload, opts.os, opts.arch, extension)
 }
 
@@ -53,15 +59,18 @@ func build(args []string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Env = buildEnv()
+
 	return cmd.Run()
 }
 
 func buildEnv() []string {
 	envs := []string{}
+
 	for _, env := range os.Environ() {
 		if !strings.HasPrefix(env, "GOOS=") && !strings.HasPrefix(env, "GOARCH=") {
 			envs = append(envs, env)
 		}
 	}
+
 	return append(envs, fmt.Sprintf("GOOS=%s", opts.os), fmt.Sprintf("GOARCH=%s", opts.arch))
 }

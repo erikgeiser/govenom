@@ -31,5 +31,6 @@ func getSysProcAttr() *syscall.SysProcAttr {
 	if noWindowsGui == "true" {
 		return &syscall.SysProcAttr{}
 	}
+
 	return &syscall.SysProcAttr{HideWindow: true}
 }

@@ -19,9 +19,9 @@ type dnsExfiltrator struct {
 	host string
 }
 
-func newDNSExfiltrator(host string) (*dnsExfiltrator, error) {
+func newDNSExfiltrator(host string) *dnsExfiltrator {
 	rand.Seed(time.Now().UnixNano())
-	return &dnsExfiltrator{strings.Trim(host, " ")}, nil
+	return &dnsExfiltrator{strings.Trim(host, " ")}
 }
 
 func (ex *dnsExfiltrator) Write(data []byte) (int, error) {
@@ -48,15 +48,17 @@ func min(a, b int) int {
 	if a <= b {
 		return a
 	}
+
 	return b
 }
 
 func generateMessageID() string {
-	// TODO: seed rng
 	var charSet = []rune("abcdefghijklmnopqrstuvwxyz0123456789")
+
 	res := make([]rune, dnsMessageIDLength)
 	for i := range res {
 		res[i] = charSet[rand.Intn(len(charSet))]
 	}
+
 	return string(res)
 }

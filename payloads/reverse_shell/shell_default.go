@@ -42,9 +42,8 @@ func buildShellCommandList(prioritizedChoices ...[]string) ([][]string, error) {
 			}
 
 			cmd := []string{path.Join(prefix, shell[0])}
-			cmd = append(cmd, shell[1:]...)
 
-			cmds = append(cmds, cmd)
+			cmds = append(cmds, append(cmd, shell[1:]...))
 		}
 	}
 

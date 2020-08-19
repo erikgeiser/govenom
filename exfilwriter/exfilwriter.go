@@ -22,7 +22,7 @@ func New(cfgs string, writeTimeout time.Duration) (*ExfilWriter, []error) {
 	exfilWriter := ExfilWriter{[]io.Writer{}, writeTimeout}
 
 	// it's perfectly fine to create a dummy Logger
-	// by passing an emtpy string as config
+	// by passing an empty string as config
 	if cfgs == "" {
 		return &exfilWriter, errors
 	}
@@ -32,18 +32,20 @@ func New(cfgs string, writeTimeout time.Duration) (*ExfilWriter, []error) {
 		exfilType := strings.ToLower(elems[0])
 		exfilCfg := strings.Join(elems[1:], "")
 
-		var err error
-		var exfil io.Writer
+		var (
+			err   error
+			exfil io.Writer
+		)
 
 		switch exfilType {
 		case "stdout":
-			exfil, err = newWriterExfiltrator(os.Stdout)
+			exfil = newWriterExfiltrator(os.Stdout)
 		case "stderr":
-			exfil, err = newWriterExfiltrator(os.Stderr)
+			exfil = newWriterExfiltrator(os.Stderr)
 		case "dns":
-			exfil, err = newDNSExfiltrator(exfilCfg)
+			exfil = newDNSExfiltrator(exfilCfg)
 		case "file":
-			exfil, err = newFileExfiltrator(exfilCfg)
+			exfil = newFileExfiltrator(exfilCfg)
 		case "dial":
 			exfil, err = newDialExfiltrator(exfilCfg)
 		default:
@@ -54,6 +56,7 @@ func New(cfgs string, writeTimeout time.Duration) (*ExfilWriter, []error) {
 			errors = append(errors, err)
 			continue
 		}
+
 		exfilWriter.exfiltrators = append(exfilWriter.exfiltrators, exfil)
 	}
 
@@ -69,6 +72,7 @@ func (l *ExfilWriter) Write(data []byte) (int, error) {
 
 		go func(ew io.Writer) {
 			defer wg.Done()
+
 			_, _ = ew.Write(data)
 		}(exfil)
 	}

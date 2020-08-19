@@ -13,9 +13,10 @@ type dialExfiltrator struct {
 
 func newDialExfiltrator(cfg string) (*dialExfiltrator, error) {
 	parts := strings.Split(cfg, ":")
-	if len(parts) < 2 {
+	if len(parts) < 2 { // nolint:gomnd
 		return nil, fmt.Errorf("invalid config")
 	}
+
 	network := parts[0]
 	address := strings.Join(parts[1:], "")
 

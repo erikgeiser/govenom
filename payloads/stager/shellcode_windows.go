@@ -29,6 +29,7 @@ func virtualProtectSetRW(startAddress unsafe.Pointer, size int) error {
 	if ret == 0 {
 		return fmt.Errorf("virtualProtect failed: %v", err)
 	}
+
 	return nil
 }
 

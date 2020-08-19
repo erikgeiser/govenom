@@ -6,6 +6,6 @@ type writerExfiltrator struct {
 	io.Writer
 }
 
-func newWriterExfiltrator(w io.Writer) (*writerExfiltrator, error) {
-	return &writerExfiltrator{w}, nil
+func newWriterExfiltrator(w io.Writer) *writerExfiltrator {
+	return &writerExfiltrator{w}
 }

