@@ -8,6 +8,7 @@ import (
 )
 
 type regularLDFlags map[string]string
+
 type externalVarLDFlags map[string]string
 
 func setupLDFlags(regular regularLDFlags, externalVars externalVarLDFlags) string {

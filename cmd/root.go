@@ -77,12 +77,13 @@ var stagerCmd = &cobra.Command{
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&opts.address, "destination", "d", "", "connect-back destination, like LHOST (host:port)")
 	rootCmd.PersistentFlags().StringVarP(&opts.net, "network", "n", "tcp", "dial network")
-	rootCmd.MarkPersistentFlagRequired("destination")
 	rootCmd.PersistentFlags().StringVar(&opts.arch, "arch", runtime.GOARCH, "target architecture")
 	rootCmd.PersistentFlags().StringVar(&opts.os, "os", runtime.GOOS, "target operating system")
 	rootCmd.PersistentFlags().StringVarP(&opts.output, "output", "o", "", "target operating system")
 	rootCmd.PersistentFlags().StringVarP(&opts.exfilCfg, "exfil", "e", "", "log exfil configuration")
 	rootCmd.PersistentFlags().BoolVar(&opts.noWindowsGui, "nowindowsgui", false, "don't use -H=windowsgui")
+
+	_ = rootCmd.MarkPersistentFlagRequired("destination")
 
 	rootCmd.AddCommand(reverseShellCmd)
 	rootCmd.AddCommand(stagerCmd)
