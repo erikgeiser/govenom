@@ -3,19 +3,22 @@
 package main
 
 import (
+	"fmt"
 	"path"
 	"syscall"
 )
 
-func getShellBinaries() []string {
-	shells := []string{
-		"bash",
-		"sh",
-		"zsh",
-		"csh",
-		"dash",
-		"ash",
-	}
+func buildShellCommandList(prioritizedChoices ...[]string) ([][]string, error) {
+	shells := prioritizedChoices
+	shells = append(shells, [][]string{
+		{"bash", "-i"},
+		{"sh"},
+		{"zsh"},
+		{"csh"},
+		{"dash"},
+		{"ash"},
+	}...)
+
 	prefixes := []string{
 		"",
 		"/bin",
@@ -25,13 +28,31 @@ func getShellBinaries() []string {
 		"/usr/local/bin",
 		"/usr/local/sbin",
 	}
-	binaries := make([]string, 0, len(shells)*len(prefixes))
-	for _, prefix := range prefixes {
-		for _, shell := range shells {
-			binaries = append(binaries, path.Join(prefix, shell))
+
+	cmds := make([][]string, 0, len(shells)*len(prefixes))
+
+	for _, shell := range shells {
+		for _, prefix := range prefixes {
+			if len(shell) == 0 {
+				continue
+			}
+
+			if shell[0] == "" {
+				continue
+			}
+
+			cmd := []string{path.Join(prefix, shell[0])}
+			cmd = append(cmd, shell[1:]...)
+
+			cmds = append(cmds, cmd)
 		}
 	}
-	return binaries
+
+	if len(cmds) == 0 {
+		return nil, fmt.Errorf("no suggested shells")
+	}
+
+	return cmds, nil
 }
 
 func getSysProcAttr() *syscall.SysProcAttr {
