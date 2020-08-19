@@ -4,14 +4,11 @@ import (
 	"fmt"
 	"net"
 	"strings"
-	"sync"
 )
 
 type dialExfiltrator struct {
 	net     string
 	address string
-	conn    *net.Conn
-	*sync.Mutex
 }
 
 func newDialExfiltrator(cfg string) (*dialExfiltrator, error) {
@@ -25,27 +22,16 @@ func newDialExfiltrator(cfg string) (*dialExfiltrator, error) {
 	return &dialExfiltrator{
 		net:     network,
 		address: address,
-		Mutex:   new(sync.Mutex),
 	}, nil
 }
 
-func (ex *dialExfiltrator) connect() error {
-	ex.Lock()
-	defer ex.Unlock()
+func (ex *dialExfiltrator) Write(data []byte) (int, error) {
 	conn, err := net.Dial(ex.net, ex.address)
 	if err != nil {
-		return fmt.Errorf("could not establish connection")
+		return 0, fmt.Errorf("write to dial exfiltrator (%s/%s): %v", ex.net, ex.address, err)
 	}
-	ex.conn = &conn
-	return nil
-}
 
-func (ex *dialExfiltrator) Write(data []byte) (int, error) {
-	ex.Lock()
-	defer ex.Unlock()
+	defer conn.Close()
 
-	if ex.conn == nil {
-		return 0, fmt.Errorf("not connected")
-	}
-	return (*ex.conn).Write(data)
+	return conn.Write(data)
 }
