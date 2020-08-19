@@ -31,9 +31,9 @@ var rootCmd = &cobra.Command{
 		}
 
 		handler := newDNSHandler(logger)
-		srv := &dns.Server{Addr: ":53", Net: "udp", Handler: handler}
+		srv := &dns.Server{Addr: opts.address, Net: opts.net, Handler: handler}
 
-		fmt.Printf("Setting up listener on %s/%s\n", opts.address, opts.net)
+		fmt.Printf("Setting up listener on %s/%s\n", srv.Addr, srv.Net)
 		if err := srv.ListenAndServe(); err != nil {
 			log.Fatalf("Failed to set udp listener %s\n", err.Error())
 		}
@@ -54,23 +54,6 @@ func logError(err error) {
 		return
 	}
 	fmt.Printf("%s\n", err)
-}
-
-func run() {
-	var logger logHandler
-	if opts.multiplexingEnabled {
-		logger = newMultiplexingLogHandler(opts.dnsMessageIDLength, opts.interFragmentTimeout)
-	} else {
-		logger = newSimpleLogHandler()
-	}
-
-	handler := newDNSHandler(logger)
-	srv := &dns.Server{Addr: opts.address, Net: opts.net, Handler: handler}
-
-	fmt.Printf("Setting up listener on %s/%s\n", opts.address, opts.net)
-	if err := srv.ListenAndServe(); err != nil {
-		log.Fatalf("Failed to set udp listener %s\n", err.Error())
-	}
 }
 
 func main() {
