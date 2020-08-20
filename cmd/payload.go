@@ -48,6 +48,7 @@ var reverseShellCmd = &cobra.Command{
 		}
 
 		err := build([]string{
+			"-trimpath",
 			"-ldflags", setupLDFlags(regular, externalVars),
 			"-o", outputFileName("xrsh"),
 			"./payloads/rsh",
@@ -81,6 +82,7 @@ var extendedReverseShellCmd = &cobra.Command{
 		}
 
 		err := build([]string{
+			"-trimpath",
 			"-ldflags", setupLDFlags(regular, externalVars),
 			"-o", outputFileName("xrsh"),
 			"./payloads/xrsh",
@@ -107,6 +109,7 @@ var stagerCmd = &cobra.Command{
 		}
 
 		err := build([]string{
+			"-trimpath",
 			"-ldflags", setupLDFlags(regular, externalVars),
 			"-o", outputFileName("stager"),
 			"./payloads/stager",
