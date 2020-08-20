@@ -55,7 +55,7 @@ func generateMessageID() string {
 
 	res := make([]rune, dnsMessageIDLength)
 	for i := range res {
-		res[i] = charSet[rand.Intn(len(charSet))]
+		res[i] = charSet[rand.Intn(len(charSet))] // nolint:gosec
 	}
 
 	return string(res)

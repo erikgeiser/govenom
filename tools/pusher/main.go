@@ -69,7 +69,7 @@ func serveShellcode(conn net.Conn, shellcode []byte) {
 	}
 }
 
-// nolint:go-lint
+// nolint:deadcode,unused
 func main() {
 	if err := PusherCmd.Execute(); err != nil {
 		fmt.Println(err)

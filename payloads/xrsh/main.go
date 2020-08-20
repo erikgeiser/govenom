@@ -19,7 +19,7 @@ var (
 	network      string
 	exfilCfg     string
 	exfilTimeout string
-	noWindowsGui string // nolint:varcheck,go-lint
+	noWindowsGui string // nolint:unused,deadcode,varcheck
 	shell        string
 )
 

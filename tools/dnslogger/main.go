@@ -59,7 +59,7 @@ func logError(err error) {
 	fmt.Printf("%s\n", err)
 }
 
-// nolint:go-lint
+// nolint:deadcode,unused
 func main() {
 	if err := DNSLoggerCmd.Execute(); err != nil {
 		fmt.Println(err)

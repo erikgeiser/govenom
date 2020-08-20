@@ -21,7 +21,7 @@ var (
 
 var (
 	verboseValue      bool
-	noWindowsGuiValue bool // nolint:varcheck,go-lint
+	noWindowsGuiValue bool // nolint:varcheck,unused
 )
 
 func init() {
