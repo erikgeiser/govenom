@@ -4,7 +4,7 @@
   <p align="center">
     <a href="https://github.com/erikgeiser/govenom/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/erikgeiser/govenom.svg?style=for-the-badge"></a>
     <a href="/LICENSE.md"><img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge"></a>
-    <a href="https://github.com/erikgeiser/govenom/actions?workflow=build"><img alt="GitHub Actions" src="https://img.shields.io/github/workflow/status/erikgeiser/govenom/build?style=for-the-badge"></a>
+    <a href="https://github.com/erikgeiser/govenom/actions?workflow=Check"><img alt="GitHub Actions" src="https://img.shields.io/github/workflow/status/erikgeiser/govenom/build?style=for-the-badge"></a>
     <a href="https://goreportcard.com/report/github.com/erikgeiser/govenom"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/erikgeiser/govenom?style=for-the-badge"></a>
     <a href="http://pkg.go.dev/github.com/erikgeiser/govenom"><img alt="Go Doc" src="https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge"></a>
   </p>
