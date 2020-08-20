@@ -1,5 +1,5 @@
 <p align="center">
-  <h2 align="center"><b>govenom</b></h3>
+  <h1 align="center"><b>govenom</b></h1>
   <p align="center"><i>No clue about the target environment, installed shells, firewall rules? Uncommon CPU architecture?</br>Govenom has you covered!</i></p>
   <p align="center">
     <a href="https://github.com/erikgeiser/govenom/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/erikgeiser/govenom.svg?style=for-the-badge"></a>
