@@ -16,6 +16,7 @@ var opts struct {
 	fileName string
 }
 
+// PusherCmd contains the CLI interface for the pusher command.
 var PusherCmd = &cobra.Command{
 	Use:   "pusher",
 	Short: "pusher pushes shellcode to a stager",

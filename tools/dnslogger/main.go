@@ -19,6 +19,7 @@ var opts struct {
 	verbose              bool
 }
 
+// DNSLoggerCmd contains the CLI interface for the dnslogger command.
 var DNSLoggerCmd = &cobra.Command{
 	Use:   "dnslogger",
 	Short: "dns logger is a receiver for DNS-exfiltrated logs of govenom payloads",
