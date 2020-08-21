@@ -8,7 +8,8 @@ import (
 	"unsafe"
 )
 
-// VirtualProtect Windows syscall: https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualprotect
+// VirtualProtect Windows syscall:
+// https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualprotect
 var virtualProtect = syscall.NewLazyDLL("kernel32.dll").NewProc("VirtualProtect")
 
 // virtualProtectSetRW wraps the VirtualProtect syscall for our purpose of
@@ -56,5 +57,6 @@ func execShellcode(shellcode []byte) error {
 	}
 
 	exec()
+
 	return nil
 }
