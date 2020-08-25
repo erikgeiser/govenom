@@ -1,0 +1,10 @@
+e7f84084085ff0801d8befc4316d27a3  ./go.mod
+303275770f0eb23679999ab0e4664f7b  ./payloads/rsh/main.go
+e016b660e59fc9eade727f8a76ed98ed  ./payloads/rsh/shell_default.go
+6df8a07e7ff69b413483a8a2bcda43a0  ./payloads/rsh/shell_windows.go
+45cc7711f3eba6974b49acee35a114db  ./payloads/stager/main.go
+31c466603fb8b7200aead7d61bdbdb7c  ./payloads/stager/shellcode_default.go
+846f9299ed4cbd9f10364edf08d0da42  ./payloads/stager/shellcode_windows.go
+979ad6d659ec2aeaf2e137b6e19f80dd  ./payloads/xrsh/main.go
+d60724a56a83bbaac96fd7b1bd47da25  ./payloads/xrsh/shell_default.go
+6fcd7f2582f1f198ad9a9baa7803271f  ./payloads/xrsh/shell_windows.go

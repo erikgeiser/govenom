@@ -15,24 +15,17 @@ var (
 	address        string
 	network        string
 	preferredShell string
-	noWindowsGui   = "false"
 	verbose        = "false"
 )
 
 var (
-	verboseValue      bool
-	noWindowsGuiValue bool // nolint:varcheck,unused
+	verboseValue bool
 )
 
 func init() {
 	v, err := strconv.ParseBool(verbose)
 	if err == nil {
 		verboseValue = v
-	}
-
-	v, err = strconv.ParseBool(noWindowsGui)
-	if err == nil {
-		noWindowsGuiValue = v
 	}
 }
 

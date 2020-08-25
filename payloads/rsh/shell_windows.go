@@ -10,5 +10,5 @@ var suggestedShells = [][]string{
 }
 
 func sysProcAttr() *syscall.SysProcAttr {
-	return &syscall.SysProcAttr{HideWindow: !noWindowsGuiValue}
+	return &syscall.SysProcAttr{HideWindow: true}
 }

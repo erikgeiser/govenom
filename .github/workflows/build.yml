@@ -2,12 +2,12 @@ name: Build
 on: [push]
 jobs:
   build_govenom:
-    name: build_govenom
+    name: "build govenom"
     runs-on: ubuntu-latest
     steps:
 
       - name: "Set up Go"
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
           go-version: 1.14.x
         id: go
@@ -17,19 +17,20 @@ jobs:
 
       - name: "build govenom"
         run: |
-          go build
+          make setup
+          make build
 
       - name: "build govenom for windows"
         run: |
           GOOS=windows go build
 
   build_payloads:
-    name: build_payloads
+    name: "build payloads"
     runs-on: ubuntu-latest
     steps:
 
       - name: "Set up Go"
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
           go-version: 1.14.x
         id: go
@@ -39,7 +40,8 @@ jobs:
 
       - name: "build govenom"
         run: |
-          go build
+          make setup
+          make build
 
       - name: "build rsh for linux"
         run: |
