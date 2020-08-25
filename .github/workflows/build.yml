@@ -37,9 +37,13 @@ jobs:
       - name: "Check out code"
         uses: actions/checkout@v1
 
+      - name: "setup"
+        run: |
+          make setup
+
       - name: "build govenom"
         run: |
-          go build
+          make
 
       - name: "build rsh for linux"
         run: |

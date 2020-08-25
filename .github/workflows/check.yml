@@ -28,3 +28,29 @@ jobs:
         run: |
           export PATH=$HOME/bin:$PATH
           GOOS=windows golangci-lint run
+
+  check-embeds:
+    name: "check embeds"
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: "Set up Go"
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.14.x
+        id: go
+
+      - name: "Check out code"
+        uses: actions/checkout@v1
+
+      - name: "setup"
+        run: |
+          make setup
+
+      - name: "Run golangci-lint (windows tag)"
+        run: |
+          INITIAL=$(md5sum ./cmd/pkged.go)
+          rm ./cmd/pkged.go
+          pkger -include /payloads -include /go.mod -o ./cmd
+          NOW=$(md5sum ./cmd/pkged.go)
+          [[ "$INITIAL" == "$NOW" ]]

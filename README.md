@@ -13,7 +13,7 @@
 
 `govenom` is a `msfvenom`-inspired payload generator written in
 Go. This makes it easy to cross-compile static binaries for a
-variety of target platforms.
+variety of target platforms. It is also much faster than `msfvenom`.
 
 ## Payloads
 
