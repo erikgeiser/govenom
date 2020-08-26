@@ -3,3 +3,5 @@
 *.macho
 *.executable
 /govenom
+/cmd/pkged.go
+/dist

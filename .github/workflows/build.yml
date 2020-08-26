@@ -1,11 +1,10 @@
 name: Build
 on: [push]
 jobs:
-  build_govenom:
-    name: "build govenom"
+  linux-builds:
+    name: "linux build"
     runs-on: ubuntu-latest
     steps:
-
       - name: "Set up Go"
         uses: actions/setup-go@v2
         with:
@@ -15,55 +14,69 @@ jobs:
       - name: "Check out code"
         uses: actions/checkout@v1
 
-      - name: "build govenom"
+      - name: "prepare build"
         run: |
-          make setup
-          make build
-
-      - name: "build govenom for windows"
-        run: |
-          GOOS=windows go build
-
-  build_payloads:
-    name: "build payloads"
-    runs-on: ubuntu-latest
-    steps:
-
-      - name: "Set up Go"
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.14.x
-        id: go
-
-      - name: "Check out code"
-        uses: actions/checkout@v1
+          go get -u github.com/markbates/pkger/cmd/pkger
+          pkger -include /payloads -include /go.mod -o ./cmd
+          rm -rf payloads
 
       - name: "build govenom"
         run: |
-          make setup
-          make build
+          go build
 
-      - name: "build rsh for linux"
+      - name: "build rsh"
         run: |
           ./govenom payload rsh -d 127.0.0.1:1234 -o rsh
 
-      - name: "build rsh for windows"
-        run: |
-          GOOS=windows ./govenom payload rsh -d 127.0.0.1:1234 -o rsh.exe
-
-      - name: "build xrsh for linux"
+      - name: "build xrsh"
         run: |
           ./govenom payload xrsh -d 127.0.0.1:1234 -o xrsh
 
-      - name: "build xrsh for windows"
-        run: |
-          GOOS=windows ./govenom payload xrsh -d 127.0.0.1:1234 -o xrsh.exe
-
-      - name: "build stager for windows"
+      - name: "build stager"
         run: |
           GOOS=windows ./govenom payload stager -d 127.0.0.1:1234 -o stager.exe
 
-      - name: "Check file existence"
+      - name: "check file existence"
         uses: andstor/file-existence-action@v1
         with:
-          files: "rsh, rsh.exe, xrsh, xrsh.exe, stager.exe"
+          files: "rsh, xrsh, stager.exe"
+
+  windows:
+    name: "windows build"
+    runs-on: windows-latest
+    steps:
+      - name: "set up go"
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.14.x
+        id: go
+
+      - name: "check out code"
+        uses: actions/checkout@v1
+
+      - name: "prepare build"
+        run: |
+          go get -u github.com/markbates/pkger/cmd/pkger
+          pkger -include /payloads -include /go.mod -o ./cmd
+          rm -R .\payloads
+
+      - name: "build govenom"
+        run: |
+          go build
+
+      - name: "build rsh"
+        run: |
+          ./govenom payload rsh -d 127.0.0.1:1234 -o rsh.exe
+
+      - name: "build xrsh"
+        run: |
+          ./govenom payload xrsh -d 127.0.0.1:1234 -o xrsh.exe
+
+      - name: "build stager"
+        run: |
+          ./govenom payload stager -d 127.0.0.1:1234 -o stager.exe
+
+      - name: "check file existence"
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "rsh.exe, xrsh.exe, stager.exe"
