@@ -1,6 +1,7 @@
 before:
   hooks:
-    - go mod tidy
+    - pkger -include /payloads -include /go.mod -o ./cmd
+
 builds:
   - goos:
       - linux
@@ -8,8 +9,27 @@ builds:
       - darwin
     goarch:
       - amd64
-    hooks:
-      pre: pkger -include /payloads -include /go.mod -o ./cmd
-      post: rm ./cmd/pkger.go
+    flags:
+      - -trimpath
+
+archives:
+  - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    replacements:
+      amd64: x64
+      darwin: macOS
+    wrap_in_directory: false
+    format: zip
+    format_overrides:
+      - goos: linux
+        format: tar.gz
+    files:
+      - LICENSE
+      - README.md
+
 checksum:
   name_template: 'checksums.txt'
+
+changelog:
+  filters:
+    exclude:
+      - Merge

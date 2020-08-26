@@ -10,7 +10,11 @@ standalone:
 	pkger -include /payloads -include /go.mod -o ./cmd
 	go build
 	rm ./cmd/pkged.go
-		
-.PHONY: embed
+.PHONY: standalone
+
+dist:
+	goreleaser --snapshot --skip-publish --rm-dist
+	rm -f ./cmd/pkged.go
+.PHONY: dist
 
 .DEFAULT_GOAL := build
