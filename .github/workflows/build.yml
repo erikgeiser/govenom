@@ -58,7 +58,7 @@ jobs:
         run: |
           go get -u github.com/markbates/pkger/cmd/pkger
           pkger -include /payloads -include /go.mod -o ./cmd
-          rmdir /Q /S payloads
+          rm -R .\payloads
 
       - name: "build govenom"
         run: |
