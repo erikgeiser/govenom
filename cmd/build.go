@@ -76,7 +76,7 @@ func build(payload string, vars injectedVariables, opts BuildOpts) error {
 	}
 
 	err = ioutil.WriteFile(path.Join(buildDir, "go.mod"),
-		[]byte("module govenom\n\n\ngo 1.11"), 0600)
+		[]byte("module govenom\n\n\ngo 1.14"), 0600)
 	if err != nil {
 		return fmt.Errorf("extracting go.mod")
 	}
@@ -155,7 +155,7 @@ func pkgerCopyFile(dst string, pkgerFilePath string) error {
 }
 
 func buildEnv(opts BuildOpts) []string {
-	envs := []string{}
+	envs := []string{"GO111MODULE=on"}
 
 	for _, env := range os.Environ() {
 		if !strings.HasPrefix(env, "GOOS=") && !strings.HasPrefix(env, "GOARCH=") {
