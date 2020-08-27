@@ -17,7 +17,7 @@ jobs:
       - name: "prepare build"
         run: |
           go get -u github.com/markbates/pkger/cmd/pkger
-          pkger -include /payloads -include /go.mod -o ./cmd
+          pkger -include /payloads -o ./cmd
           rm -rf payloads
 
       - name: "build govenom"
@@ -57,7 +57,7 @@ jobs:
       - name: "prepare build"
         run: |
           go get -u github.com/markbates/pkger/cmd/pkger
-          pkger -include /payloads -include /go.mod -o ./cmd
+          pkger -include /payloads -o ./cmd
           rm -R .\payloads
 
       - name: "build govenom"

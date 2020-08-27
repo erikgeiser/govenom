@@ -7,7 +7,7 @@ build:
 .PHONY: build
 
 standalone:
-	pkger -include /payloads -include /go.mod -o ./cmd
+	pkger -include /payloads -o ./cmd
 	go build
 	rm ./cmd/pkged.go
 .PHONY: standalone

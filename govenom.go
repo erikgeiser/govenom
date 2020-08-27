@@ -1,8 +1,6 @@
 package main
 
-import (
-	"govenom/cmd"
-)
+import "govenom/cmd"
 
 func main() {
 	cmd.Execute()

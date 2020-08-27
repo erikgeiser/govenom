@@ -1,6 +1,6 @@
 before:
   hooks:
-    - pkger -include /payloads -include /go.mod -o ./cmd
+    - pkger -include /payloads -o ./cmd
 
 builds:
   - goos:
@@ -25,6 +25,23 @@ archives:
     files:
       - LICENSE
       - README.md
+
+nfpms:
+  - package_name: govenom
+    vendor: Erik Geiser
+    homepage: https://github.com/erikgeiser/govenom
+    maintainer: Erik Geiser <erik.geiser@posteo.net>
+    description: Govenom is a msfvenom-inspired cross-platform payload generator toolkit
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    dependencies:
+      - golang
+    overrides:
+      rpm:
+        replacements:
+          amd64: x32_64
 
 checksum:
   name_template: 'checksums.txt'

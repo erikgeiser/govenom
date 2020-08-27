@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	// set during compilation/linking via -X ldflag
+	// set during compilation via -X ldflag
 	address        string
 	network        string
 	preferredShell string

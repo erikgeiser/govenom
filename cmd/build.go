@@ -23,7 +23,7 @@ func setupLDFlags(vars injectedVariables, opts BuildOpts) string {
 	}
 
 	for k, v := range vars {
-		ldFlags += fmt.Sprintf("-X main.%s=%s ", k, v)
+		ldFlags += fmt.Sprintf(`-X "main.%s=%s" `, k, v)
 	}
 
 	return ldFlags
@@ -53,6 +53,11 @@ func outputFileName(payload string, opts BuildOpts) (string, error) {
 }
 
 func build(payload string, vars injectedVariables, opts BuildOpts) error {
+	_, err := exec.LookPath(opts.GoBin)
+	if err != nil {
+		return fmt.Errorf("cannot find Go binary (install Go or set `--go /path/to/go`")
+	}
+
 	buildDir, err := ioutil.TempDir("", "govenom_build_")
 	if err != nil {
 		return fmt.Errorf("creating temporary build directory: %v", err)
@@ -65,14 +70,15 @@ func build(payload string, vars injectedVariables, opts BuildOpts) error {
 		}
 	}()
 
-	err = pkger.Walk(path.Join("/payloads", payload), pkgerCopyWalker(buildDir))
+	err = pkger.Walk("/payloads", pkgerCopyWalker(path.Join(buildDir, "payloads")))
 	if err != nil {
 		return fmt.Errorf("extracting payload: %w", err)
 	}
 
-	err = pkgerCopyFile(path.Join(buildDir, "go.mod"), "/go.mod")
+	err = ioutil.WriteFile(path.Join(buildDir, "go.mod"),
+		[]byte("module govenom\n\n\ngo 1.11"), 0600)
 	if err != nil {
-		return fmt.Errorf("copying go.mod file: %v", err)
+		return fmt.Errorf("extracting go.mod")
 	}
 
 	outFileName, err := outputFileName(payload, opts)
@@ -85,7 +91,7 @@ func build(payload string, vars injectedVariables, opts BuildOpts) error {
 		"-trimpath",
 		"-ldflags", setupLDFlags(vars, opts),
 		"-o", outFileName,
-		"./" + payload,
+		"./payloads/" + payload,
 	}
 
 	fmt.Printf("Compiling: [\"%s\"]\n", strings.Join(args, "\", \""))
@@ -106,10 +112,11 @@ func pkgerCopyWalker(dst string) filepath.WalkFunc {
 		}
 
 		srcFilePath := filePath
-		dstFilePath := path.Join(dst, strings.TrimPrefix(srcFilePath, "govenom:/payloads/"))
+		dstFilePath := path.Join(dst,
+			strings.TrimPrefix(srcFilePath, "govenom:/payloads/"))
 
 		if info.IsDir() {
-			return os.Mkdir(dstFilePath, os.ModePerm)
+			return os.MkdirAll(dstFilePath, os.ModePerm)
 		}
 
 		return pkgerCopyFile(dstFilePath, srcFilePath)

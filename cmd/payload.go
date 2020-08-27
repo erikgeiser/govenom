@@ -9,10 +9,12 @@ import (
 )
 
 type BuildOpts struct {
-	Arch         string
-	OS           string
-	Output       string
-	NoWindowsGui bool
+	GoBin         string
+	Arch          string
+	OS            string
+	Output        string
+	NoWindowsGui  bool
+	Deterministic bool
 }
 
 var buildOpts BuildOpts
@@ -87,29 +89,31 @@ var stagerCmd = &cobra.Command{
 }
 
 func init() {
-	payloadCmd.PersistentFlags().StringVarP(&payloadVars.address, "destination", "d", "",
+	payloadFlags := payloadCmd.PersistentFlags()
+	payloadFlags.StringVarP(&buildOpts.GoBin, "go", "g", "go", "path to Go binary")
+	payloadFlags.StringVarP(&payloadVars.address, "destination", "d", "",
 		"connect-back destination, like LHOST (host:port)")
-	payloadCmd.PersistentFlags().StringVarP(&payloadVars.net, "network", "n", "tcp", "dial network")
-	payloadCmd.PersistentFlags().StringVar(&buildOpts.Arch, "arch", runtime.GOARCH, "target architecture")
-	payloadCmd.PersistentFlags().StringVar(&buildOpts.OS, "os", runtime.GOOS, "target operating system")
-	payloadCmd.PersistentFlags().StringVarP(&buildOpts.Output, "output", "o", "", "target operating system")
-	payloadCmd.PersistentFlags().BoolVar(&buildOpts.NoWindowsGui, "nowindowsgui", false,
+	payloadFlags.StringVarP(&payloadVars.net, "network", "n", "tcp", "dial network")
+	payloadFlags.StringVar(&buildOpts.Arch, "arch", runtime.GOARCH, "target architecture")
+	payloadFlags.StringVar(&buildOpts.OS, "os", runtime.GOOS, "target operating system")
+	payloadFlags.StringVarP(&buildOpts.Output, "output", "o", "", "target operating system")
+	payloadFlags.BoolVar(&buildOpts.NoWindowsGui, "nowindowsgui", false,
 		"don't use -H=windowsgui")
 
 	_ = payloadCmd.MarkPersistentFlagRequired("destination")
 
-	reverseShellCmd.PersistentFlags().BoolVar(&payloadVars.verbose, "verbose", false, "print errors to stderr")
-	reverseShellCmd.PersistentFlags().StringVar(&payloadVars.preferredShell, "shell", "", "preferred shell")
+	rshFlags := reverseShellCmd.PersistentFlags()
+	rshFlags.BoolVar(&payloadVars.verbose, "verbose", false, "print errors to stderr")
+	rshFlags.StringVar(&payloadVars.preferredShell, "shell", "", "preferred shell")
 
-	extendedReverseShellCmd.PersistentFlags().StringVarP(&payloadVars.exfilCfg, "exfil", "e", "",
-		"log exfil configuration")
-	extendedReverseShellCmd.PersistentFlags().DurationVar(&payloadVars.exfilTimeout, "timeout", 3*time.Second,
-		"exfil timeout")
-	extendedReverseShellCmd.PersistentFlags().StringVar(&payloadVars.preferredShell, "shell", "",
-		"preferred shell")
+	xrshFlags := extendedReverseShellCmd.PersistentFlags()
+	xrshFlags.StringVarP(&payloadVars.exfilCfg, "exfil", "e", "", "log exfil configuration")
+	xrshFlags.DurationVar(&payloadVars.exfilTimeout, "timeout", 3*time.Second, "exfil timeout")
+	xrshFlags.StringVar(&payloadVars.preferredShell, "shell", "", "preferred shell")
 
-	stagerCmd.PersistentFlags().StringVarP(&payloadVars.exfilCfg, "exfil", "e", "", "log exfil configuration")
-	stagerCmd.PersistentFlags().DurationVar(&payloadVars.exfilTimeout, "timeout", 3*time.Second,
+	stagerFlags := stagerCmd.PersistentFlags()
+	stagerFlags.StringVarP(&payloadVars.exfilCfg, "exfil", "e", "", "log exfil configuration")
+	stagerFlags.DurationVar(&payloadVars.exfilTimeout, "timeout", 3*time.Second,
 		"exfil timeout")
 
 	payloadCmd.AddCommand(reverseShellCmd)

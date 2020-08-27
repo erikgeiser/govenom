@@ -15,7 +15,6 @@
 Go. This makes it easy to cross-compile static binaries for a
 variety of target platforms. It is also much faster than `msfvenom`.
 
----
 
 ## Payloads
 
@@ -116,6 +115,7 @@ also used by `govenom` itself to build the selected payloads.
 ## FAQ:
 ---
 **The `govenom` integrity cannot be verified on macOS**
+
 macOS adds a quarantine attribute to downloaded binaries
 which you can remove with the following command:
 ```
