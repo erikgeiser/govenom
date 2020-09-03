@@ -15,26 +15,31 @@
 Go. This makes it easy to cross-compile static binaries for a
 variety of target platforms. It is also much faster than `msfvenom`.
 
-
 ## Payloads
 
-Currently, three payloads are supported:
+Currently, four payloads are supported:
 
-* **rsh:** A simple reverse shell. It selects one of the most common
- shells binaries and makes it available via TCP or UDPconnection.
-* **xrsh:** An extended robust reverse shell. A simple heuristic
-determines the most suitable shell executable, taking shells that
-are installed but not in `$PATH` into account. In contrast to most
-other available shells out there, additional info can be sent via
-alternative communication channels via the exfiltration mechanism
-(see relevant section below). For example, if no shell could be
-detected or the connection could not be established due to a
-firewall, the corresponding error can be exfiltrated via DNS.
-* **stager**: A shellcode stager that is compatible with Metasploits
-`exploits/multi/handler` with a `meterpreter/reverse_tcp` payload.
-It first reads a 4 Byte shellcode length and then the shellcode
-itself from a TCP connection and executes it. Currently, this is
-only available for Windows targets.
+- **rsh:** A simple reverse shell. It selects one of the most common
+  shells binaries and makes it available via TCP or UDPconnection.
+- **xrsh:** An extended robust reverse shell. A simple heuristic
+  determines the most suitable shell executable, taking shells that
+  are installed but not in `$PATH` into account. In contrast to most
+  other available shells out there, additional info can be sent via
+  alternative communication channels via the exfiltration mechanism
+  (see relevant section below). For example, if no shell could be
+  detected or the connection could not be established due to a
+  firewall, the corresponding error can be exfiltrated via DNS.
+- **stager**: A shellcode stager that is compatible with Metasploits
+  `exploits/multi/handler` with a `meterpreter/reverse_tcp` payload.
+  It first reads a 4 Byte shellcode length and then the shellcode
+  itself from a TCP connection and executes it. Currently, this is
+  only available for Windows targets.
+
+- **socks5**: A `socks5` server via a reverse TCP connection. It
+  connects back to the `gateway` tool and provides network access
+  to the target's network. The `sockst5` server on the target
+  system can only be accessed by connecting to the gateway listener
+  opened by the govenom `gateway` tool.
 
 ## Exfiltration
 
@@ -47,31 +52,36 @@ present but only `cmd` is there. The solution to problem is the
 used with `xrsh` and `stager` payloads. It lets you configure an
 arbitrary amount of exfiltration strategies of the following types:
 
-* **`stdout`/`stderr`:** If you can capture the output of your
-payload when it's executed, you can output debug logs via
-`stdout/stderr`.
+- **`stdout`/`stderr`:** If you can capture the output of your
+  payload when it's executed, you can output debug logs via
+  `stdout/stderr`.
 
-* **DNS:** The most useful exfiltration type because noone blocks
-DNS. Messages are encoded and split into parts which can be put
-together again by the `govenom` tool `dnslogger` (see section
-below).
+- **DNS:** The most useful exfiltration type because noone blocks
+  DNS. Messages are encoded and split into parts which can be put
+  together again by the `govenom` tool `dnslogger` (see section
+  below).
 
-* **File:** Write the debug information into a file on the target
-system. This is for example useful if you can recover files via a
-local file inclusion vulnerability.
+- **File:** Write the debug information into a file on the target
+  system. This is for example useful if you can recover files via a
+  local file inclusion vulnerability.
 
-* **Net (`dial`):** Send the debug log via a TCP or UDP connection
-that's different from the original connect back connection.
+- **Net (`dial`):** Send the debug log via a TCP or UDP connection
+  that's different from the original connect back connection.
 
 ## Tools
 
 `govenom` also provides some tools to work with the payloads:
 
-* **dnslogger:** The `dnslogger` tool decodes and recombines messages
-that were exfiltrated via DNS.
+- **dnslogger:** The `dnslogger` tool decodes and recombines messages
+  that were exfiltrated via DNS.
 
-* **pusher:** The `pusher` tool can serve and deliver `meterpreter`
-shellcode generated using `msfvenom` to the `govenom` stager payload.
+- **pusher:** The `pusher` tool can serve and deliver `meterpreter`
+  shellcode generated using `msfvenom` to the `govenom` stager payload.
+
+- **gateway:** the gateway for the `sockst` payload. It waits for
+  the payload to connect back and starts a lister which forwards
+  connection to the payload's `socks5` server and thus acts as a
+  gateway into the target's network.
 
 ## Building
 
@@ -113,20 +123,24 @@ govenom ./govenom.go tool dnslogger
 also used by `govenom` itself to build the selected payloads.
 
 ## FAQ:
+
 ---
+
 **The `govenom` integrity cannot be verified on macOS**
 
 macOS adds a quarantine attribute to downloaded binaries
 which you can remove with the following command:
+
 ```
 xattr -d com.apple.quarantine ./govenom
 ```
+
 ---
 
 ## Plans
 
-* Connection encryption
-* Reverse shell listener like `ncat` with logging capabilities
-* Linux support for the `stager` payload
+- Connection encryption
+- Reverse shell listener like `ncat` with logging capabilities
+- Linux support for the `stager` payload
 
 Thanks to [https://quasilyte.dev]() for the logo.
