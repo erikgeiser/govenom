@@ -3,7 +3,6 @@ package dnslogger
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/miekg/dns"
@@ -58,12 +57,4 @@ func logError(err error) {
 	}
 
 	fmt.Printf("%s\n", err)
-}
-
-// nolint:deadcode,unused
-func main() {
-	if err := DNSLoggerCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
 }

@@ -88,6 +88,21 @@ var stagerCmd = &cobra.Command{
 	},
 }
 
+var socks5Cmd = &cobra.Command{
+	Use:   "socks5",
+	Short: "socks5 server exposed via reverse tcp connection",
+	Run: func(cmd *cobra.Command, args []string) {
+		err := build("socks5", injectedVariables{
+			"address":      payloadVars.address,
+			"exfilCfg":     payloadVars.exfilCfg,
+			"exfilTimeout": payloadVars.exfilTimeout.String(),
+		}, buildOpts)
+		if err != nil {
+			fmt.Println(err)
+		}
+	},
+}
+
 func init() {
 	payloadFlags := payloadCmd.PersistentFlags()
 	payloadFlags.StringVarP(&buildOpts.GoBin, "go", "g", "go", "path to Go binary")
@@ -116,7 +131,13 @@ func init() {
 	stagerFlags.DurationVar(&payloadVars.exfilTimeout, "timeout", 3*time.Second,
 		"exfil timeout")
 
+	socks5flags := socks5Cmd.PersistentFlags()
+	socks5flags.StringVarP(&payloadVars.exfilCfg, "exfil", "e", "", "log exfil configuration")
+	socks5flags.DurationVar(&payloadVars.exfilTimeout, "timeout", 3*time.Second,
+		"exfil timeout")
+
 	payloadCmd.AddCommand(reverseShellCmd)
 	payloadCmd.AddCommand(extendedReverseShellCmd)
 	payloadCmd.AddCommand(stagerCmd)
+	payloadCmd.AddCommand(socks5Cmd)
 }
