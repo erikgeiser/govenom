@@ -49,9 +49,11 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	log.Printf("connected to %s", conn.RemoteAddr())
+
 	defer conn.Close()
 
-	yamuxServer, err := yamux.Client(conn, nil)
+	yamuxServer, err := yamux.Server(conn, nil)
 	if err != nil {
 		log.Fatalf("connection multiplexer setup: %v", err)
 	}

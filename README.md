@@ -37,7 +37,7 @@ Currently, four payloads are supported:
 
 - **socks5**: A `socks5` server via a reverse TCP connection. It
   connects back to the `gateway` tool and provides network access
-  to the target's network. The `sockst5` server on the target
+  to the target's network. The `socks5` server on the target
   system can only be accessed by connecting to the gateway listener
   opened by the govenom `gateway` tool.
 
@@ -78,7 +78,7 @@ arbitrary amount of exfiltration strategies of the following types:
 - **pusher:** The `pusher` tool can serve and deliver `meterpreter`
   shellcode generated using `msfvenom` to the `govenom` stager payload.
 
-- **gateway:** the gateway for the `sockst` payload. It waits for
+- **gateway:** the gateway for the `socks` payload. It waits for
   the payload to connect back and starts a lister which forwards
   connection to the payload's `socks5` server and thus acts as a
   gateway into the target's network.

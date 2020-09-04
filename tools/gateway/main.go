@@ -41,6 +41,19 @@ func init() {
 }
 
 func runGateway(opts Opts) error {
+	for {
+		err := runGatwayForPayloadConnection(opts)
+		if err != nil {
+			log.Printf("gateway error: %v", err)
+		} else {
+			fmt.Println("payload disconnected")
+		}
+
+		fmt.Println("waiting for new payload connection")
+	}
+}
+
+func runGatwayForPayloadConnection(opts Opts) error {
 	listener, err := net.Listen("tcp", opts.connectBackAddress)
 	if err != nil {
 		return fmt.Errorf("listen: %w", err)
