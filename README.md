@@ -20,7 +20,7 @@ variety of target platforms. It is also much faster than `msfvenom`.
 Currently, four payloads are supported:
 
 - **rsh:** A simple reverse shell. It selects one of the most common
-  shells binaries and makes it available via TCP or UDPconnection.
+  shells binaries and makes it available via TCP or UDP connection.
 - **xrsh:** An extended robust reverse shell. A simple heuristic
   determines the most suitable shell executable, taking shells that
   are installed but not in `$PATH` into account. In contrast to most
@@ -34,7 +34,6 @@ Currently, four payloads are supported:
   It first reads a 4 Byte shellcode length and then the shellcode
   itself from a TCP connection and executes it. Currently, this is
   only available for Windows targets.
-
 - **socks5**: A `socks5` server via a reverse TCP connection. It
   connects back to the `gateway` tool and provides network access
   to the target's network. The `socks5` server on the target
