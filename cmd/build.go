@@ -56,7 +56,8 @@ func outputFileName(payload string, opts BuildOpts) (string, error) {
 func build(payload string, vars injectedVariables, opts BuildOpts) error {
 	_, err := exec.LookPath(opts.GoBin)
 	if err != nil {
-		return fmt.Errorf("cannot find Go binary (install Go or set `--go /path/to/go`")
+		return fmt.Errorf(
+			"cannot find Go compiler (install Go (https://golang.org) or set `--go /path/to/go`)")
 	}
 
 	buildDir, err := ioutil.TempDir("", "govenom_build_")
