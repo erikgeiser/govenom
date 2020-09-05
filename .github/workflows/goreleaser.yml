@@ -9,11 +9,6 @@ jobs:
   goreleaser:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
       - name: "set up go"
         uses: actions/setup-go@v2
         with:
@@ -22,6 +17,11 @@ jobs:
       - name: "install pkger"
         run: |
           go get -u github.com/markbates/pkger/cmd/pkger
+
+      - name: checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: "run goreleaser"
         uses: goreleaser/goreleaser-action@v2
