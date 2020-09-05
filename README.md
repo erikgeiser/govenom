@@ -51,7 +51,7 @@ Currently, four payloads are supported:
 - **pusher:** The `pusher` tool can serve and deliver `meterpreter`
   shellcode generated using `msfvenom` to the `govenom` stager payload.
 
-- **gateway:** the gateway for the `socks` payload. It waits for
+- **gateway:** the gateway for the `socks5` payload. It waits for
   the payload to connect back and starts a lister which forwards
   connection to the payload's `socks5` server and thus acts as a
   gateway into the target's network.
