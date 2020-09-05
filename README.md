@@ -41,7 +41,22 @@ Currently, four payloads are supported:
   system can only be accessed by connecting to the gateway listener
   opened by the govenom `gateway` tool.
 
-## Exfiltration
+## Tools
+
+`govenom` also provides some tools to work with the payloads:
+
+- **dnslogger:** The `dnslogger` tool decodes and recombines messages
+  that were exfiltrated via DNS.
+
+- **pusher:** The `pusher` tool can serve and deliver `meterpreter`
+  shellcode generated using `msfvenom` to the `govenom` stager payload.
+
+- **gateway:** the gateway for the `socks` payload. It waits for
+  the payload to connect back and starts a lister which forwards
+  connection to the payload's `socks5` server and thus acts as a
+  gateway into the target's network.
+
+## Debug Exfiltration
 
 Sometimes a shell you placed on target system does not appear to
 connect back. Most of the time this results in a lot of trial and
@@ -67,21 +82,6 @@ arbitrary amount of exfiltration strategies of the following types:
 
 - **Net (`dial`):** Send the debug log via a TCP or UDP connection
   that's different from the original connect back connection.
-
-## Tools
-
-`govenom` also provides some tools to work with the payloads:
-
-- **dnslogger:** The `dnslogger` tool decodes and recombines messages
-  that were exfiltrated via DNS.
-
-- **pusher:** The `pusher` tool can serve and deliver `meterpreter`
-  shellcode generated using `msfvenom` to the `govenom` stager payload.
-
-- **gateway:** the gateway for the `socks` payload. It waits for
-  the payload to connect back and starts a lister which forwards
-  connection to the payload's `socks5` server and thus acts as a
-  gateway into the target's network.
 
 ## Building
 
