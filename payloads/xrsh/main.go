@@ -101,14 +101,16 @@ func main() {
 
 	shellBinary, args, err := determineShellCommand([][]string{strings.Split(shell, " ")})
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return
 	}
 
 	log.Printf("Using Shell: %s\n", shellBinary)
 
 	err = attachShell(con, shellBinary, args...)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return
 	}
 
 	log.Println("Shell terminated")

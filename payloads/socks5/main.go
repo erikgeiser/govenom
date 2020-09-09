@@ -55,16 +55,19 @@ func main() {
 
 	yamuxServer, err := yamux.Server(conn, nil)
 	if err != nil {
-		log.Fatalf("connection multiplexer setup: %v", err)
+		log.Printf("connection multiplexer setup: %v", err)
+		return
 	}
 
 	socksServer, err := socks5.New(&socks5.Config{})
 	if err != nil {
-		log.Fatalf("socks5 server setup: %v\n", err)
+		log.Printf("socks5 server setup: %v\n", err)
+		return
 	}
 
 	err = socksServer.Serve(yamuxServer)
 	if err != nil {
-		log.Fatalf("socks5 serve: %v", err)
+		log.Printf("socks5 serve: %v", err)
+		return
 	}
 }
