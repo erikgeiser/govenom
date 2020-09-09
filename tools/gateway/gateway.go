@@ -74,7 +74,7 @@ func startGateway(gatewayAddress string, sess *yamux.Session) error {
 		go func() {
 			err := handleGatewayConn(conn, sess)
 			if err != nil {
-				log.Printf("error while handling gateway connection: %v", err)
+				log.Printf("handling gateway connection: %v", err)
 			}
 		}()
 	}
@@ -90,11 +90,19 @@ func handleGatewayConn(conn net.Conn, sess *yamux.Session) error {
 
 	eg.Go(func() error {
 		_, err := io.Copy(yamuxConn, conn)
-		return err
+		if err != nil {
+			return fmt.Errorf("gateway->payload: %w", err)
+		}
+
+		return nil
 	})
 	eg.Go(func() error {
 		_, err := io.Copy(conn, yamuxConn)
-		return err
+		if err != nil {
+			return fmt.Errorf("payload->gateway: %w", err)
+		}
+
+		return nil
 	})
 
 	return eg.Wait()
